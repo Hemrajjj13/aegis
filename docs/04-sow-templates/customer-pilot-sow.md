@@ -152,3 +152,41 @@ will be replicated in production. The pilot is shadow mode; no live fraud
 decisions are affected.
 
 > **Legal note:** These liability and indemnity terms are subject to formal counsel review prior to Gate G2 commercial execution (Assumption [ASM-LEG-04](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) / Gate G2).
+
+---
+
+## 11. Master Pilot Agreement Outline (Legal Framework)
+
+This outline defines the standard clauses of the bilateral **Master Pilot Agreement** accompanying this Statement of Work and the Data Processing Agreement (DPA), submitted to legal counsel at Gate G1 ([Doc 13 §4](file:///c:/dev/aegis/docs/13-compliance-posture.md)):
+
+### 11.1 Preamble and Relationship of Parties
+- **Parties:** Project Aegis legal entity (Service Provider) and Customer (Design Partner).
+- **Independent Contractors:** Neither party is an agent, partner, or joint venturer of the other.
+
+### 11.2 Shadow Mode Covenant (Zero Live Payment Interference)
+- **Non-Interference Warranty:** The Service Provider covenants that the Aegis software operates strictly in **shadow mode** (offline batch replay or asynchronous Kafka event mirroring).
+- Under no circumstances shall Aegis transmit synchronous blocking signals (`DECLINE` or `CANCEL`) to the Customer's live acquiring banks, card networks, or payment gateways during the Pilot.
+
+### 11.3 Intellectual Property Rights
+- **Aegis IP:** Aegis retains all right, title, and interest in the core evaluation platform, algorithms, CEL parser, deterministic replay engine, and console software.
+- **Customer IP:** Customer retains sole ownership of its raw transaction logs, customer profiles, and ground-truth fraud labels.
+- **Derived Rulesets:** Rules authored specifically for the Customer's transaction patterns are licensed non-exclusively and perpetually to the Customer for internal fraud prevention.
+
+### 11.4 Confidentiality and Anonymized Case Study Rights
+- **Confidential Information:** All customer data, benchmark metrics, and security documentation are deemed Confidential Information.
+- **Publicity & Attribution:** Aegis may publish technical performance metrics and fraud prevention deltas strictly in an **anonymized case study format** ([Doc 16 §6](file:///c:/dev/aegis/docs/16-case-studies.md)). Customer names, trademarks, and identifiable business statistics are withheld unless express written consent is granted by Customer's authorized signatory.
+
+### 11.5 Data Protection & Indian Regulatory Alignment
+- **DPDP Act 2023:** Aegis acts strictly as a **Data Processor** processing personal data solely upon documented instructions of the Customer (Data Fiduciary).
+- **Data Residency:** All customer transaction records and audit logs are hosted strictly in AWS Mumbai (`ap-south-1`), complying with RBI storage-of-payment-system-data mandates.
+- **Zero Raw PAN Invariant:** Customer agrees not to transmit raw Primary Account Numbers; Aegis is indemnified against accidental PAN transmissions subject to immediate filter rejection.
+
+### 11.6 Term, Termination, and Certified Deletion
+- **Duration:** 4 weeks from confirmed ingestion of the initial dataset.
+- **Convenience Termination:** Either party may terminate the agreement upon 7 calendar days' written notice.
+- **Data Purge:** Upon pilot termination or expiry, Aegis shall purge all Customer data partitions from PostgreSQL and S3 within 30 days and provide an executive Officer Certificate of Data Destruction.
+
+### 11.7 Liability Cap and Transition to Commercial Agreement
+- **Mutual Liability Cap:** Total cumulative liability arising out of or related to this pilot agreement is capped at ₹50,000 (or the nominal pilot fee paid).
+- **Commercial Transition:** Upon successful validation of pilot success metrics (§1), Customer maintains a right of first offer to transition to an Annual Enterprise Subscription under pre-agreed design partner preferential pricing ([Doc 15 §3](file:///c:/dev/aegis/docs/15-go-to-market.md)).
+

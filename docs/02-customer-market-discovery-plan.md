@@ -7,10 +7,8 @@
 
 ---
 
-> This document is an outline and interview plan only.
-> The full customer and market discovery report will be written after
-> a minimum of 10 interviews are completed.
-> Do not draw conclusions from this document alone.
+> **Note:** The complete, authoritative operational discovery plan, 200-company target list methodology, outreach templates, free-backtest one-pager, and interview logging templates are located in [docs/02-discovery-plan.md](file:///c:/dev/aegis/docs/02-discovery-plan.md).
+> This document remains as a companion reference. Do not draw validation conclusions until interviews are logged.
 
 ---
 
