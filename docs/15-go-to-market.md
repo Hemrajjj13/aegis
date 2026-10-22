@@ -1,7 +1,7 @@
 # Go-To-Market and Commercial Strategy
 
 **Document:** 15  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect ([DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -22,7 +22,7 @@ Our sales motion is built entirely around an **empirical, proof-first wedge: the
 > **Project Aegis is** the real-time, explainable fraud decision engine  
 > **That** enables risk teams to simulate and verify rule changes against 90 days of historical data before deploying them to production.  
 > **Unlike** legacy enterprise fraud suites that require 6-month integrations and operate as opaque black boxes,  
-> **Aegis provides** a self-service dataset import backtest that proves ROI in 48 hours, executes in $< 25\text{ ms}$ p50, and guarantees zero PII or raw card liability.
+> **Aegis provides** a self-service dataset import backtest that demonstrates potential fraud reductions in 48 hours, executes in $< 25\text{ ms}$ p50, and is designed for zero raw card liability and no cleartext PII.
 
 ### 2.2 Three Defensible Value Pillars
 1. **Mathematical Determinism (The Backtest Wedge):** Replay candidate rule changes against historical data with injected event-time clocks ([ADR-0003](file:///c:/dev/aegis/docs/adr/0003-event-time-for-deterministic-replay.md)) and in-memory velocity simulation ([ADR-0005](file:///c:/dev/aegis/docs/adr/0005-velocity-script-event-id-idempotency.md)), delivering 0.00% divergence and eliminating rule deployment anxiety.
@@ -153,14 +153,14 @@ A standard bilateral DPA aligned with DPDP Act 2023, designed to be executed pri
 2. **Scope of Processing:** Explicitly limited to fraud prevention, risk scoring, and rule evaluation.
 3. **Data Processor Obligations:** Technical and organizational measures; processing only on documented instructions; zero PII retention.
 4. **Sub-Processors:** Disclosure of AWS India (`ap-south-1`) as sole hosting sub-processor.
-5. **Data Localisation Guarantee:** Absolute covenant that data remains stored in India.
+5. **Data Localisation Commitment:** Contractual covenant that data remains stored in India.
 6. **Breach Notification:** Mandatory notification to customer within 24 hours of any confirmed security incident.
 7. **Deletion and Crypto-Shredding:** Automated cryptographic erasure within 30 days of contract termination and delivery of a Certificate of Deletion.
 
 ### 7.2 Security Whitepaper Outline
 An 8-page technical dossier provided to enterprise security teams during Gate G2:
 1. **Executive Summary & Zero-Trust Architecture Overview.**
-2. **Data Classification & Zero-PAN Guarantee:** Structural exclusion of raw card numbers; secondary Luhn-valid regex scanner.
+2. **Data Classification & Zero-PAN Architecture:** Structural exclusion of raw card numbers; secondary Luhn-valid regex scanner.
 3. **Cryptographic Controls:** Argon2id password hashing, TLS 1.3 in transit, AES-256 KMS at rest.
 4. **Audit Immutability:** SHA-256 Merkle batch sealing, AWS S3 Object Lock Compliance WORM anchors.
 5. **Multi-Tenant Isolation:** PostgreSQL Row-Level Security (`FORCE ROW LEVEL SECURITY`) and tenant session scoping.
@@ -195,4 +195,4 @@ Consistent with Decision D9, all pipeline expectations are tracked as hypotheses
 > **Response:** *"Aegis was engineered specifically for sub-second Indian checkout loops. Our Java 21 core evaluates complex rule sets in under 10 ms, with an end-to-end server p99 latency under 100 ms. Furthermore, we support tenant-configurable fail-open circuit breakers: if internal latency ever breaches 80 ms, the engine immediately yields an approve verdict with a degraded flag. Your checkout never blocks."*
 
 ### Objection 4: "You are an early-stage company. What happens if your service goes down?"
-> **Response:** *"First, our initial engagement is shadow-mode only—we run asynchronously off mirrored Kafka topics or backtest imports, presenting zero risk to your live checkout. Second, our engine is stateless: PostgreSQL is the single source of truth, and Redis derived velocity caches can rebuild in minutes. Third, our pilot agreement guarantees you full export of all custom rules and audit logs, with zero proprietary lock-in."*
+> **Response:** *"First, our initial engagement is shadow-mode only—we run asynchronously off mirrored Kafka topics or backtest imports, presenting zero risk to your live checkout. Second, our engine is stateless: PostgreSQL is the single source of truth, and Redis derived velocity caches can rebuild in minutes. Third, our pilot agreement provides you full export of all custom rules and audit logs, with zero proprietary lock-in."*

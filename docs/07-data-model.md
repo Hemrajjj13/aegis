@@ -1,7 +1,7 @@
 # Data Model and Storage Specification
 
 **Document:** 07  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -164,7 +164,7 @@ CREATE TABLE decisions_y2026m11 PARTITION OF decisions
 
 ### 3.4 `outbox`
 
-Guarantees transactional event publishing to Kafka without distributed transactions (ADR-0002).
+Enables reliable transactional event publishing to Kafka without distributed transactions (ADR-0002).
 
 ```sql
 CREATE TABLE outbox (
@@ -501,7 +501,7 @@ public void setTenantContext(Connection connection, UUID tenantId) throws SQLExc
 }
 ```
 
-*Note on Superuser Bypass:* Postgres superusers bypass RLS by default. Application roles (`app_live_user`, `app_replay_user`, etc.) must **never** be granted SUPERUSER or BYPASSRLS permissions. `FORCE ROW LEVEL SECURITY` guarantees table owners are also bound by RLS.
+*Note on Superuser Bypass:* Postgres superusers bypass RLS by default. Application roles (`app_live_user`, `app_replay_user`, etc.) must **never** be granted SUPERUSER or BYPASSRLS permissions. `FORCE ROW LEVEL SECURITY` ensures table owners are also bound by RLS.
 
 ---
 

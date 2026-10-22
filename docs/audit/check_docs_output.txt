@@ -1,7 +1,7 @@
+﻿================================================================================
+Project Aegis - Documentation & Architecture Audit (check_docs.js)
 ================================================================================
-Project Aegis - Documentation & Architecture Audit (check_docs.py)
-================================================================================
-Discovered 41 markdown files across /docs, README.md, and AGENTS.md.
+Discovered 43 markdown files across /docs, README.md, and AGENTS.md.
 
 Checking 1: Relative and file:/// Markdown Links...
   -> PASS
@@ -11,7 +11,7 @@ Checking 3: Resolved Open Question Markers (DR-xx / Deferred)...
   -> PASS
 Checking 4: Completeness of docs/00-index.md...
   -> PASS
-Checking 5: Canonical Glossary Terms & Enum Consistency...
+Checking 5: Canonical Glossary Terms & Enum Consistency (incl. 7 Roles)...
   -> PASS
 Checking 6: Phrasing Discipline (No 'compliant' outside disclaimer)...
   -> PASS
@@ -21,7 +21,3 @@ Checking 7: Assumptions Register Gate/Owner/Method Completeness...
 ================================================================================
 ALL DOCUMENTATION AUDIT CHECKS PASSED PERFECTLY (0 ERRORS).
 ================================================================================
-Execution Timestamp: October 2026
-Environment: Python 3.12.11 on Windows (Win32)
-Command: python tools/check_docs.py
-Exit Code: 0 (SUCCESS)

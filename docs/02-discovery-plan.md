@@ -1,7 +1,7 @@
 # Customer and Market Discovery Plan
 
 **Document:** 02  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect ([DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -25,12 +25,12 @@ The discovery program validates the following core assumptions prior to **Gate G
 | Objective | Target Hypothesis | Assumption Ref | Gate |
 |---|---|---|---|
 | **Ideal Customer Profile (ICP)** | Mid-size Indian payment aggregators, fintech lenders, and neobanks processing 1M–10M transactions/month with 1–5 risk team members. | [ASM-INT-01](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1** |
-| **Server Latency Budget** | A server-side p99 latency target of $\le 100\text{ ms}$ satisfies payment gateway checkout timeout envelopes. | [ASM-INT-02](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1** |
+| **Server Latency Budget** | A server-side p99 latency target of $\le 100\text{ ms}$ aims to fit within payment gateway checkout timeout envelopes. | [ASM-INT-02](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1** |
 | **Throughput Profile** | Baseline launch capacity of 2,000 TPS with peak burst headroom of 5,000 TPS is sufficient for pilot cohorts. | [ASM-INT-03](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1** |
 | **Traffic Distribution** | Synthetic mix (65% approve, 10% velocity limit, 5% blocklist, 5% duplicate, 5% timeout, 5% malformed) mirrors production stress. | [ASM-INT-04](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1** |
 | **Fail-Open Policy** | Payment aggregators demand configurable fail-open with degraded flagging during downstream outages; lenders prefer fail-closed. | [ASM-INT-05](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1** |
 | **Account Identifier Hashing** | Callers can compute client-side tenant-salted SHA-256 hashes (`account_id_hash`) without sending raw account IDs. | [ASM-INT-08](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1** |
-| **VPA Masking Policy** | Hashing UPI VPAs (`vpa_hash`) satisfies velocity counter requirements without hindering fraud analyst investigation. | [ASM-INT-09](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1** |
+| **VPA Masking Policy** | Hashing UPI VPAs (`vpa_hash`) is designed to support velocity counter requirements without hindering fraud analyst investigation. | [ASM-INT-09](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1** |
 | **Sequence Number Feasibility** | Originating gateways cannot guarantee monotonic counters; synthetic ordering `(event_time, received_at)` is required. | [ASM-INT-10](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1** |
 | **Backend Tech Stack** | Target fintech engineering teams predominantly build in Java or Node.js (TypeScript); Python and Go SDKs are secondary. | [ASM-INT-11](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1** |
 | **Free Backtest Offer** | A free 48-hour historical backtest using CSV/Parquet dataset import generates high-intent qualified pilot leads. | [ASM-GTM-01](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md) | **Gate G1/G2** |

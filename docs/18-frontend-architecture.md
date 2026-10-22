@@ -1,7 +1,7 @@
 # Frontend Architecture Specification
 
 **Document:** 18  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -80,14 +80,16 @@ apps/console/
 
 ## 3. Client-Side Routing and Role-Based Access Control (RBAC)
 
-The console application uses `react-router-dom` (v6) with code-splitting via `React.lazy` and `Suspense`. Every route defines an explicit role access policy mapping to the 5 enterprise roles defined in [Document 08 §4.4](file:///c:/dev/aegis/docs/08-threat-model.md) and [Document 19 §4](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).
+The console application uses `react-router-dom` (v6) with code-splitting via `React.lazy` and `Suspense`. Every route defines an explicit role access policy mapping to the 7 canonical roles defined in [Document 01 §11.1](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md#111-human-roles), [Document 08 §2.1](file:///c:/dev/aegis/docs/08-threat-model.md#21-trust-boundaries), and [Document 19 §2](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md#2-relational-database-schema-v9__init_auth_and_sessionssql).
 
 ### 3.1 Role Hierarchy and Permissions Matrix
 
 | Role (`user.role`) | Live Feed (`/decisions`) | Case Queue (`/cases`) | Rule Editor (`/rules`) | Replay / Datasets (`/replay`) | Audit Ledger (`/audit`) | Tenant Admin (`/settings`) |
 |---|---|---|---|---|---|---|
-| `admin` | View | View | View | View / Run | Full View | Full Admin (Users, Keys) |
+| `owner` | Full View | Full View / Decide | Create / Approve | View / Run | Full View + Verify | Full Admin (Billing, Deletion, Users, Keys) |
+| `admin` | View | View | View | View / Run | Full View | Full Admin (Users, Keys, Config) |
 | `risk_manager` | View | View / Decide | Create / Approve | View / Run | View | View |
+| `rule_author` | View | View | Create / Edit / Simulate (Cannot Approve) | View / Run | View | None |
 | `risk_analyst` | View | View / Decide | View / Simulate | View / Run | View | None |
 | `auditor` | View | View (Read-Only) | View (Read-Only) | View (Read-Only) | Full View + Verify | None |
 | `developer` | View | View | View / Simulate | View / Run | View | API Keys / Webhooks |
@@ -100,7 +102,7 @@ All protected routes are wrapped in a `<RoleGuard allowedRoles={[...]} />` highe
 // Architectural representation of Route Guard Logic (src/routes/RoleGuard.tsx)
 // Enforces Section 3.1 RBAC mapping without inventing unapproved routes.
 interface RoleGuardProps {
-  allowedRoles: Array<'admin' | 'risk_manager' | 'risk_analyst' | 'auditor' | 'developer'>;
+  allowedRoles: Array<'owner' | 'admin' | 'risk_manager' | 'rule_author' | 'risk_analyst' | 'auditor' | 'developer'>;
   children: JSX.Element;
 }
 
@@ -123,11 +125,13 @@ export function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
 
 ### 3.3 Default Role Dashboard Redirects
 Upon successful session establishment (via login or invite completion in [Document 19 §3](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md)), the user is navigated based on operational focus:
-- `risk_analyst` $\rightarrow$ `/cases` (Case Review Queue, high-throughput triage)
+- `owner` $\rightarrow$ `/settings` (Tenant administration, billing, governance)
+- `admin` $\rightarrow$ `/settings/members` (Tenant provisioning and user management)
 - `risk_manager` $\rightarrow$ `/rules` (Rule management, pending maker-checker promotions)
+- `rule_author` $\rightarrow$ `/rules` (Rule authoring, draft simulations, replay tests)
+- `risk_analyst` $\rightarrow$ `/cases` (Case Review Queue, high-throughput triage)
 - `auditor` $\rightarrow$ `/audit` (Cryptographic audit ledger and export)
 - `developer` $\rightarrow$ `/decisions` (Live telemetry and API latency monitoring)
-- `admin` $\rightarrow$ `/settings/members` (Tenant provisioning and user management)
 
 ---
 

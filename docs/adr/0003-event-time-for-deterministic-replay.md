@@ -41,7 +41,7 @@ There are two sources of time that a rule engine can use:
   replay runs.
 - The result faithfully represents what would have happened in production.
 
-Event time is the only option that satisfies determinism.
+Event time is the only option that achieves determinism.
 
 ### What event time requires
 

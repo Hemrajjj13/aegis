@@ -1,7 +1,7 @@
 # Identity, Authentication, and Session Specification
 
 **Document:** 19  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -38,7 +38,7 @@ CREATE TABLE aegis_auth.users (
     email VARCHAR(255) NOT NULL,
     mobile VARCHAR(32) NOT NULL,
     full_name VARCHAR(128) NOT NULL,
-    role VARCHAR(32) NOT NULL, -- 'owner', 'admin', 'risk_manager', 'risk_analyst', 'auditor', 'developer'
+    role VARCHAR(32) NOT NULL, -- 'owner', 'admin', 'risk_manager', 'rule_author', 'risk_analyst', 'auditor', 'developer'
     status VARCHAR(32) NOT NULL DEFAULT 'ACTIVE', -- 'PENDING_ONBOARDING', 'ACTIVE', 'LOCKED', 'DEACTIVATED'
     totp_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     failed_login_attempts INT NOT NULL DEFAULT 0,
@@ -242,7 +242,8 @@ Upon receiving an access token, the frontend reads the signed `role` claim and r
 [Decoded JWT Claim: role]
        │
        ├──► 'risk_analyst' ──► Redirect /cases       (Triage review queue)
-       ├──► 'risk_manager' ──► Redirect /rules       (Rule authoring & promotion diffs)
+       ├──► 'rule_author'  ──► Redirect /rules       (Rule authoring, simulations, replays)
+       ├──► 'risk_manager' ──► Redirect /rules       (Rule approvals, canaries, promotion diffs)
        ├──► 'auditor'      ──► Redirect /audit       (Immutable ledger inspection)
        ├──► 'developer'    ──► Redirect /decisions   (Live transaction feed & latency)
        └──► 'admin'|'owner'──► Redirect /settings    (Tenant administration & keys)
@@ -327,5 +328,5 @@ public interface IdentityProvider {
 For Tier 2 enterprise customers requiring Corporate Single Sign-On (SSO):
 1. The `InProcessSpringSecurityIdentityProvider` is replaced by `KeycloakOidcIdentityProvider` via Spring profile `tier2-sso`.
 2. Interactive login redirects to the enterprise identity provider (Okta, Azure AD, Ping Identity) using standard OpenID Connect Authorization Code Flow with PKCE.
-3. User role claims (`admin`, `risk_manager`, etc.) are mapped dynamically from enterprise SAML/OIDC token assertions (`groups` or `roles` claim) to Aegis tenant RBAC permissions.
+3. User role claims (`owner`, `admin`, `risk_manager`, `rule_author`, etc.) are mapped dynamically from enterprise SAML/OIDC token assertions (`groups` or `roles` claim) to Aegis tenant RBAC permissions.
 4. SCIM 2.0 endpoints (`/scim/v2/Users`, `/scim/v2/Groups`) enable automated employee onboarding and immediate de-provisioning upon employee termination.

@@ -1,7 +1,7 @@
 # Rule DSL and Explainability Specification
 
 **Document:** 09  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -13,9 +13,9 @@
 
 This document specifies the domain-specific language (DSL), execution semantics, explainability model, and versioning standards for fraud detection rules in Project Aegis.
 
-The rule engine satisfies six non-negotiable architectural requirements:
+The rule engine implements six non-negotiable architectural requirements:
 1. **Deterministic and Side-Effect Free:** A rule is a pure function: `f(event, features, clock) -> RuleOutcome`. Given identical inputs, it produces the identical verdict on any machine at any time (ADR-0003).
-2. **Sub-Millisecond Evaluation:** A complete ruleset containing 50–200 rules must evaluate in < 10 ms (budgeted 10 ms p99 in doc 01 §3.1).
+2. **Sub-Millisecond Evaluation:** A complete ruleset containing 50–200 rules must evaluate in < 10 ms (budgeted 10 ms p99 in doc 01 §3.1 [hypothesis, to validate by benchmark]).
 3. **Common Expression Language (CEL):** Instead of building a custom parser or embedding an unconstrained language (like JavaScript or Groovy), Aegis uses CEL (Google Common Expression Language). CEL is non-Turing complete, type-safe, side-effect free, memory-bounded, and evaluates in microseconds.
 4. **Full Explainability:** Every decision must detail exactly which rules fired, their numerical score contribution, and standardized machine-readable reason codes (doc 01 §9.1).
 5. **Hard Rule Precedence:** Critical blocks (e.g., sanctioned accounts, stolen cards) bypass soft scoring and force an immediate verdict.
@@ -332,6 +332,6 @@ All rule DSL and scoring questions have been resolved or classified per Decision
 | 1 | [DR-DSL-02](file:///c:/dev/aegis/docs/00-decisions/decision-register.md) | **Direct CEL authoring vs UI builder:** Visual drag-and-drop vs code editor. | Decided | Direct CEL editor with syntax validation in Tier 0/1; drag-and-drop UI builder deferred to enterprise roadmap. |
 | 2 | [DR-DSL-03](file:///c:/dev/aegis/docs/00-decisions/decision-register.md) | **Negative weights:** Negative rule weights and score clamping. | Decided | Negative rule weights supported (down to -50.0 for trusted signals); total score clamped strictly to `[0.0, 100.0]`. |
 | 3 | [DR-DSL-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md) | **Default threshold ranges:** Standardized scoring scale. | Decided | Standardized 0.0 to 100.0 scale (default: Review $\ge 40.0$, Decline $\ge 75.0$), configurable per tenant ruleset. |
-| 4 | [DR-DSL-04](file:///c:/dev/aegis/docs/00-decisions/decision-register.md) | **Rule evaluation timeout:** Guarding against regex backtracking. | Decided | Per-rule evaluation timeout of 50 µs with max 250 AST nodes per rule and max 250 rules per ruleset. |
+| 4 | [DR-DSL-04](file:///c:/dev/aegis/docs/00-decisions/decision-register.md) | **Rule evaluation budget and static limits:** Guarding against thread exhaustion. | Decided | Per-ruleset evaluation budget in milliseconds (hypothesis: 10 ms total evaluation deadline, to validate by benchmark) plus static limits (max 250 AST nodes per rule, max AST depth of 15, RE2 linear-time regex restrictions, max 250 rules per ruleset) as primary protection against thread exhaustion. (Replaces unenforced 50 µs per-rule JVM timeout). |
 | 5 | [DR-DSL-05](file:///c:/dev/aegis/docs/00-decisions/decision-register.md) | **Multi-currency normalization:** Real-time FX vs pre-converted INR. | Decided | Callers submit `amount_inr` pre-converted; domestic rails are INR-native. Real-time FX conversion table deferred. |
 

@@ -89,3 +89,4 @@ if __name__ == "__main__":
         print_check("Info text (#1F6FD1 on surface)", "#1F6FD1", light_surface)
         print_check("Light Accent text (#4B5BE0 on surface)", "#4B5BE0", light_surface)
         print_check("White on light accent button (#FFFFFF on #4B5BE0)", "#FFFFFF", "#4B5BE0")
+        print_check("White on solid light accent button (#FFFFFF on #3849D6)", "#FFFFFF", "#3849D6")

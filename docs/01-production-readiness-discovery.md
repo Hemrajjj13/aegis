@@ -1,7 +1,7 @@
 # Production-Readiness Discovery
 
 **Document:** 01  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026
 
@@ -500,15 +500,15 @@ Minimum on-call requirements:
 
 ### 11.1 Human roles
 
-| Role | Can | Cannot |
-|------|-----|--------|
-| Owner | Everything, including billing, user management, tenant deletion | Nothing restricted |
-| Admin | Manage users, API keys, settings, environments | Approve rule changes; cannot approve their own invite |
-| Risk Manager | Approve and publish rules, set thresholds and fail policy, run replays | Approve a change they authored (maker-checker enforced) |
-| Rule Author | Draft rules, run simulations and replays, view decisions | Publish rules |
-| Analyst | Review cases, label transactions, view decisions and audit log | Change rules or settings |
-| Auditor | Read-only access including full audit log and exports | Change anything |
-| Developer | Manage API keys and webhooks, access sandbox | View production PII fields by default |
+| Role | System Identifier | Can | Cannot |
+|------|-------------------|-----|--------|
+| Owner | `owner` | Everything, including billing, user management, tenant deletion | Nothing restricted |
+| Admin | `admin` | Manage users, API keys, settings, environments | Approve rule changes; cannot approve their own invite |
+| Risk Manager | `risk_manager` | Approve and publish rules, set thresholds and fail policy, run replays | Approve a change they authored (maker-checker enforced) |
+| Rule Author | `rule_author` | Draft rules, run simulations and replays, view decisions | Publish rules |
+| Risk Analyst | `risk_analyst` | Review cases, label transactions, view decisions and audit log | Change rules or settings |
+| Auditor | `auditor` | Read-only access including full audit log and exports | Change anything |
+| Developer | `developer` | Manage API keys and webhooks, access sandbox | View production PII fields by default |
 
 ### 11.2 Maker-checker for rule publishing
 

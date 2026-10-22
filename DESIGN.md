@@ -58,7 +58,7 @@ The console is **dark by default** with a calibrated **light companion** for bri
   --text: #0F1626;            /* Primary typography (contrast 16.53:1 - AAA) */
   --text-muted: #5B677F;      /* Secondary typography (contrast 5.41:1 - AA) */
   --accent: #3849D6;          /* Primary actions on surface (contrast 6.94:1 - AA) */
-  --accent-solid: #3849D6;    /* Solid button with white text (contrast 4.52:1 - AA) */
+  --accent-solid: #3849D6;    /* Solid button with white text (contrast 6.79:1 - AA) */
   --accent-hover: #2E3DB8;
   
   /* Adjusted to pass WCAG 2.1 AA for normal text (>= 4.5:1) */

@@ -1,7 +1,7 @@
 # Local Development Environment (Tier 0) Specification
 
 **Document:** 21  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -253,10 +253,12 @@ All seed users share the standard local development password: `DevPassword123!#`
 | Role | Name | Email | Mobile (E.164) | Default Landing Page |
 |---|---|---|---|---|
 | `owner` | Ananya Patel | `ananya.owner@acme.example` | `+919876500001` | `/settings` |
+| `admin` | Neha Joshi | `neha.admin@acme.example` | `+919876500006` | `/settings` |
 | `risk_manager` | Vikram Sharma | `vikram.manager@acme.example` | `+919876500002` | `/rules` |
+| `rule_author` | Kabir Sen | `kabir.author@acme.example` | `+919876500007` | `/rules` |
 | `risk_analyst` | Priya Nair | `priya.analyst@acme.example` | `+919876500003` | `/cases` |
-| `developer` | Arjun Mehta | `arjun.dev@acme.example` | `+919876500004` | `/decisions` |
 | `auditor` | Rahul Verma | `rahul.auditor@acme.example` | `+919876500005` | `/audit` |
+| `developer` | Arjun Mehta | `arjun.dev@acme.example` | `+919876500004` | `/decisions` |
 
 *Seed TOTP Note:* For all seed accounts, the RFC 6238 Base32 secret is seeded as `JBSWY3DPEHPK3PXP`. Developers can use standard authenticator apps or the dev test generator in `aegis-identity`.
 

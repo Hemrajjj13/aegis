@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD) — Project Aegis Stage 1
 
 **Document:** 03  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Product Architect ([DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -37,13 +37,15 @@ Project Aegis provides:
 
 ## 3. Personas and Target Users
 
-| Persona | Role & Context | Primary Jobs to Be Done | Key Pain Points |
+| Persona | Canonical Role & Context | Primary Jobs to Be Done | Key Pain Points |
 |---|---|---|---|
-| **Priya**<br>*(Fraud Analyst)* | Operates case review queue; reviews suspicious transactions flagged for manual inspection. | Quick triage of flagged payments; wants unambiguous reason codes and fired rule weights; requires sub-second queue filtering. | Slow UI, obscure risk scores without explanations, having to check 3 different screens to understand a verdict. |
-| **Arjun**<br>*(Risk Manager / Rule Author)* | Authors and optimizes fraud detection logic; manages velocity thresholds and blocklists. | Formulate CEL rules, test against historical datasets, simulate threshold changes, request peer review. | Fear of false declines; inability to backtest without data engineering help; slow release cycles. |
-| **Vikram**<br>*(Head of Fraud / CRO)* | Accountable for fraud loss rate, false-positive decline rate, and payment gateway approval ratios. | Review aggregate false-positive vs fraud-loss trade-offs; approve production rules; audit compliance logs. | Hard to prove ROI of risk tooling; high per-transaction costs of legacy vendors; fear of regulatory non-compliance. |
-| **Rahul**<br>*(Payment Platform Engineer)* | Integrates Aegis into the payment checkout pipeline and maintains high-availability microservices. | Integrate clean SDKs; ensure $< 100\text{ ms}$ p99 latency; verify zero-downtime rule updates; configure fail-open policies. | Upstream gateway timeouts; complex distributed state; lack of idempotency guarantees during retries. |
-| **Ananya**<br>*(Compliance & Audit Officer)* | Ensures adherence to RBI directives, DPDP Act 2023, and internal risk policies. | Export tamper-evident audit trails; verify zero PAN storage; ensure timely crypto-shredding of historical data. | Untracked rule promotions; altered database logs; vendor data stored outside India. |
+| **Priya**<br>*(Fraud Analyst)* | `risk_analyst`: Operates case review queue; reviews suspicious transactions flagged for manual inspection. | Quick triage of flagged payments; wants unambiguous reason codes and fired rule weights; requires sub-second queue filtering. | Slow UI, obscure risk scores without explanations, having to check 3 different screens to understand a verdict. |
+| **Arjun**<br>*(Rule Author)* | `rule_author`: Dual-control maker who drafts and simulates fraud detection logic; manages velocity thresholds and blocklists. | Formulate CEL rules, test against historical datasets, simulate threshold changes, submit draft rulesets for peer review. | Fear of false declines; inability to backtest without data engineering help; slow release cycles. |
+| **Vikram**<br>*(Head of Fraud / CRO)* | `risk_manager`: Dual-control checker accountable for fraud loss rate, false-positive decline rate, and payment gateway approval ratios. | Review aggregate false-positive vs fraud-loss trade-offs; approve and promote production rules; audit compliance logs. | Hard to prove ROI of risk tooling; high per-transaction costs of legacy vendors; fear of regulatory non-compliance. |
+| **Rahul**<br>*(Platform Engineer)* | `developer`: Integrates Aegis into the payment checkout pipeline and maintains high-availability microservices. | Integrate clean SDKs; ensure $< 100\text{ ms}$ p99 latency; verify zero-downtime rule updates; configure fail-open policies. | Upstream gateway timeouts; complex distributed state; lack of idempotency guarantees during retries. |
+| **Ananya**<br>*(Compliance & Audit Officer)* | `auditor`: Reviews adherence to RBI directives, DPDP Act 2023, and internal risk policies. | Export tamper-evident audit trails; verify zero PAN storage; ensure timely crypto-shredding of historical data. | Untracked rule promotions; altered database logs; vendor data stored outside India. |
+| **Neha**<br>*(Tenant Administrator)* | `admin`: Manages tenant user provisioning, API credential lifecycle, environment toggles, and operational configuration. | Manage team invitations, rotate API keys, configure sandbox vs production environments. | Manual onboarding friction, credential leakage risks, lack of auditability for administrative operations. |
+| **Kabir**<br>*(Fintech Founder / Tenant Owner)* | `owner`: Accountable for organizational billing, enterprise subscription tier, root access, and tenant deletion. | Oversee billing usage, manage tenant lifecycle, authorize break-glass actions. | Opaque vendor pricing, runaway transaction costs, vendor lock-in. |
 
 ---
 
@@ -163,18 +165,18 @@ Project Aegis provides:
 ---
 
 ### US-007: Rule Authoring and Maker-Checker Dual Control
-**As a** Risk Manager,  
+**As a** Rule Author or Risk Manager,  
 **I want to** author CEL rules in a syntax-highlighted editor and submit them for peer approval,  
 **So that** no single individual can unilaterally modify production risk thresholds without oversight.
 
 **Acceptance Criteria:**
-- **Given** a user with role `risk_manager`,
+- **Given** a user with role `rule_author` or `risk_manager`,
 - **When** they create or modify a rule in the editor,
 - **Then** the editor validates CEL syntax, AST complexity ($\le 250$ nodes), and ensures regexes do not risk catastrophic backtracking.
 - **Given** Rule Draft `D1` authored by User `A`,
 - **When** User `A` attempts to approve or publish `D1`,
 - **Then** the API rejects the action with HTTP 403 Forbidden ("Author cannot approve own rule change").
-- **Then** only a distinct user with role `admin` or a second `risk_manager` can approve and activate the ruleset.
+- **Then** only a distinct user with role `admin`, `owner`, or a second `risk_manager` can approve and activate the ruleset.
 
 ---
 

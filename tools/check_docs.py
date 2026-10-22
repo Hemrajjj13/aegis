@@ -26,7 +26,7 @@ AGENTS_PATH = os.path.join(WORKSPACE_ROOT, "AGENTS.md")
 
 # Canonical enumerations from docs/glossary.md
 CANONICAL_OUTCOMES = {"approve", "decline", "review"}
-CANONICAL_ROLES = {"owner", "admin", "risk_manager", "risk_analyst", "auditor", "developer"}
+CANONICAL_ROLES = {"owner", "admin", "risk_manager", "rule_author", "risk_analyst", "auditor", "developer"}
 CANONICAL_TIERS = {"Tier 0", "Tier 1", "Tier 2"}
 CANONICAL_FAIL_POLICY = {"fail-open", "fail-closed"}
 
@@ -254,7 +254,8 @@ def check_canonical_glossary_enums():
         "approve", "decline", "review",
         "tenant_id", "event_id", "event_time", "decision_id",
         "fail-open", "fail-closed", "tier 0", "tier 1", "tier 2",
-        "gate g1", "gate g2", "evaluationcore"
+        "gate g1", "gate g2", "evaluationcore",
+        "owner", "admin", "risk_manager", "rule_author", "risk_analyst", "auditor", "developer"
     ]
     for term in required_terms:
         if term not in glossary_text:

@@ -1,11 +1,11 @@
 # Design System and UX Architecture
 
 **Document:** 10  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
-> **Assumption note:** Visual tokens, density configurations, and interaction workflows in this document are tailored for fraud risk analysts, compliance officers, and rule authors. Brand elements and color adjustments marked `[interview-driven]` will be validated during design partner prototype walkthroughs.
+> **Assumption note:** Visual tokens, density configurations, and interaction workflows in this document are tailored for fraud risk analysts, compliance officers, rule authors, and platform operators across the seven canonical roles defined in [Document 01 §11.1](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md#111-human-roles) and [glossary.md](file:///c:/dev/aegis/docs/glossary.md). Brand elements and color adjustments marked `[interview-driven]` will be validated during design partner prototype walkthroughs.
 
 ---
 
@@ -40,7 +40,7 @@ Theme is **dark by default** (minimizing eye strain in 24/7 security operations 
 | `text` | `#E6EAF2` | `#0F1626` | Primary headings, body copy | 13.84:1 (dark), 16.53:1 (light) | **AAA** (Pass) |
 | `text-muted` | `#93A0B8` | `#5B677F` | Secondary labels, timestamps | 6.84:1 (dark), 5.41:1 (light) | **AA** (Pass) |
 | `accent` | `#6C7CFF` | `#3849D6` | Primary buttons, active tabs, focus ring | 6.20:1 (dark on surface), 6.94:1 (light on surface) | **AA** (Pass) |
-| `accent-solid` | `#5061FF` | `#3849D6` | Solid button background (white text) | 4.67:1 (white on dark), 4.52:1 (white on light) | **AA** (Pass) |
+| `accent-solid` | `#5061FF` | `#3849D6` | Solid button background (white text) | 4.67:1 (white on dark), 6.79:1 (white on light) | **AA** (Pass) |
 | `approve` | `#2FBF71` | `#137841` | Approved outcome, passing tests | 8.54:1 (dark), 5.54:1 (light) | **AA / AAA** (Pass)|
 | `review` | `#F5A524` | `#945900` | Flagged for manual review, warnings | 8.12:1 (dark), 5.69:1 (light) | **AA / AAA** (Pass)|
 | `decline` | `#F0556A` | `#CC2F46` | Declined outcome, critical blocks | 4.63:1 (dark), 5.51:1 (light) | **AA** (Pass) |
@@ -50,7 +50,7 @@ Theme is **dark by default** (minimizing eye strain in 24/7 security operations 
 *Contrast Ratio & WCAG 2.1 Verification Note (recomputed via `/tools/contrast.py`):*
 - Light Approve adjusted from `#178A4C` (4.43:1, failed AA) to `#137841` (5.54:1 vs white `#FFFFFF`, passes AA).
 - Light Review adjusted from `#B7740A` (4.15:1, failed AA) to `#945900` (5.69:1 vs white `#FFFFFF`, passes AA).
-- Dark Accent `#6C7CFF`: text `#0B0E14` on `#6C7CFF` achieves 5.49:1 (passes AA). For buttons requiring white text `#FFFFFF`, adjusted token `--accent-solid` is `#5061FF` (4.67:1 vs white, passes AA) or `#3849D6` in light theme (4.52:1 vs white, passes AA).
+- Dark Accent `#6C7CFF`: text `#0B0E14` on `#6C7CFF` achieves 5.49:1 (passes AA). For buttons requiring white text `#FFFFFF`, adjusted token `--accent-solid` is `#5061FF` (4.67:1 vs white, passes AA) or `#3849D6` in light theme (6.79:1 vs white, passes AA and AAA Large).
 - Decline on dark surface (`#121722`): `#F0556A` yields 4.63:1 (passes AA normal text); small badge typography uses `#FF6B81` at 6.13:1 contrast against surface. All text tokens pass WCAG 2.1 AA for normal text (≥ 4.5:1).
 
 ### 2.2 Typography System

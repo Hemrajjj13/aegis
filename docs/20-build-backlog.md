@@ -1,7 +1,7 @@
 # Engineering Build Backlog and Milestone Specification
 
 **Document:** 20  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -101,7 +101,7 @@ Total Backlog Points: 214 Story Points
 - **Goal:** Secure rule publishing lifecycle preventing unauthorized rule injection into production.
 - **Stories:**
   - `TSK-017` (5 pts): Flyway `V2__init_rulesets.sql` schema and JPA entity mappings with immutable version hashes. Ref: [Doc 07 §2.2](file:///c:/dev/aegis/docs/07-data-model.md).
-  - `TSK-018` (8 pts): Maker-checker state machine enforcement in `aegis-rules`: Author submitting rule cannot approve rule; promotion requires approval from distinct `risk_manager` or `admin`. Ref: [Doc 01 §11.2](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md), [Doc 08 §4.5](file:///c:/dev/aegis/docs/08-threat-model.md).
+  - `TSK-018` (8 pts): Maker-checker state machine enforcement in `aegis-rules`: Author submitting rule (role `rule_author` or `risk_manager`) cannot approve rule; promotion requires approval from distinct `risk_manager`, `admin`, or `owner`. Ref: [Doc 01 §11.2](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md), [Doc 08 §4.5](file:///c:/dev/aegis/docs/08-threat-model.md).
   - `TSK-019` (5 pts): Draft simulation endpoint `POST /v1/rulesets/simulate` testing draft expressions against synthetic memory events without committing state. Ref: [Doc 06 §3.3](file:///c:/dev/aegis/docs/06-api-and-event-schemas.md).
   - `TSK-020` (3 pts): Instant rollback endpoint `POST /v1/rulesets/{id}/rollback` restoring previous active ruleset within sub-second latency. Ref: [Doc 01 §11.2](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md).
 
@@ -135,14 +135,14 @@ Total Backlog Points: 214 Story Points
   - `TSK-031` (8 pts): Build Live Decisions feed (`/decisions`) consuming SSE stream with 2,000-event ring buffer and `Space` pause/resume accumulator. Ref: [Doc 18 §6](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
   - `TSK-032` (5 pts): Case Review queue (`/cases`) and slide-over detail drawer with keyboard triage shortcuts (`j`, `k`, `a`, `d`, `r`). Ref: [Doc 10 §5](file:///c:/dev/aegis/docs/10-design-system-and-ux.md), [Doc 18 §9](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
   - `TSK-033` (5 pts): Monaco CEL Rule Editor with custom auto-complete, Web Worker AST validation squiggles, and diff viewer. Ref: [Doc 10 §4](file:///c:/dev/aegis/docs/10-design-system-and-ux.md), [Doc 18 §7.2](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
-  - `TSK-034` (3 pts): Playwright E2E test verifying end-to-end maker-checker approval flow and keyboard case triage. Ref: [Doc 18 §10](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
+  - `TSK-034` (3 pts): Playwright E2E test verifying end-to-end maker-checker approval flow (`rule_author` submits, distinct `risk_manager` approves) and keyboard case triage. Ref: [Doc 18 §10](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
 
 ---
 
 ### Milestone M8: Identity Subsystem, Credentials, and RBAC (21 Points)
 - **Goal:** Implement the pluggable in-house identity subsystem for Tier 0 and Tier 1 without third-party SaaS dependencies.
 - **Stories:**
-  - `TSK-035` (5 pts): Flyway `V9__init_auth_and_sessions.sql` schema and entities for users, credentials, TOTP secrets, invites, and sessions. Ref: [Doc 19 §2](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).
+  - `TSK-035` (5 pts): Flyway `V9__init_auth_and_sessions.sql` schema and entities for users, credentials, TOTP secrets, invites, and sessions, supporting the seven canonical roles (`owner`, `admin`, `risk_manager`, `rule_author`, `risk_analyst`, `auditor`, `developer`). Ref: [Doc 19 §2](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).
   - `TSK-036` (5 pts): Implement `InProcessSpringSecurityIdentityProvider` with Argon2id password hashing, rotating refresh tokens, and 15-minute JWT issuance. Ref: [Doc 19 §4](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md), [ADR-0007](file:///c:/dev/aegis/docs/adr/0007-identity-behind-a-port.md).
   - `TSK-037` (5 pts): RFC 6238 TOTP enrollment and challenge verification with encrypted secret storage (AES-256-GCM). Ref: [Doc 19 §3.3](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).
   - `TSK-038` (3 pts): Implement `LocalMailboxNotificationService` writing signup OTPs and invite tokens to stdout/log for Tier 0/1. Ref: [Doc 19 §6](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).

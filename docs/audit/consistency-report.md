@@ -71,7 +71,7 @@ Implemented `/tools/contrast.py` adhering to W3C WCAG 2.1 relative luminance and
 | **Light Theme Review Text** (on `#FEF3E2`) | `#B7740A` | 3.44:1 | **FAIL AA** ($< 4.5:1$) | `#945900` | **5.69:1** | **PASS AA** (Normal Text) |
 | **Light Theme Approve Text** (on `#E6F7ED`) | `#178A4C` | 4.06:1 | **FAIL AA** ($< 4.5:1$) | `#137841` | **5.54:1** | **PASS AA** (Normal Text) |
 | **Dark Theme Accent Text** (on `#6C7CFF`) | `#FFFFFF` | 3.53:1 | **FAIL AA** ($< 4.5:1$) | `#0B0E14` | **5.49:1** | **PASS AA** (Normal Text) |
-| **Solid Accent Button** (White text `#FFF`) | `#6C7CFF` | 3.53:1 | **FAIL AA** ($< 4.5:1$) | `#5061FF` (Dark) / `#3849D6` (Light) | **4.67:1** / **4.52:1** | **PASS AA** (Normal Text) |
+| **Solid Accent Button** (White text `#FFF`) | `#6C7CFF` | 3.53:1 | **FAIL AA** ($< 4.5:1$) | `#5061FF` (Dark) / `#3849D6` (Light) | **4.67:1** / **6.79:1** | **PASS AA** (Normal Text) |
 | **Dark Theme Decline Text** (on `#2D1214`) | `#FF6666` | 5.27:1 | PASS AA | `#FF6666` | **5.27:1** | PASS AA |
 | **Light Theme Decline Text** (on `#FCE8E8`) | `#C5221F` | 5.75:1 | PASS AA | `#C5221F` | **5.75:1** | PASS AA |
 

@@ -1,10 +1,26 @@
 # Project Aegis Documentation Suite — Changelog
 
-**Status:** Approved (docs v1.0, assumption-based)  
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)  
 **Maintained by:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last Updated:** October 2026  
 
 All releases and architectural specification increments follow Semantic Versioning (`vMAJOR.MINOR.PATCH`).
+
+---
+
+## [docs-v1.0.1] — 2026-10-22
+
+### Summary
+Documentation alignment and verification fixes across Project Aegis specifications and `/tools`. Standardized canonical role model, replaced unenforceable microsecond timeouts with static AST limits and per-ruleset deadlines, softened regulatory and performance claims, cleaned historical stubs, ported verification tooling to Node.js, and standardized document status lines to `Draft-complete`.
+
+### Changed & Fixed
+- **Role Alignment:** Reconciled role definitions across docs 01, 03, 08, 10, 18, 19, 20, 21, and `glossary.md` to one canonical 7-role list (`owner`, `admin`, `risk_manager`, `rule_author`, `risk_analyst`, `auditor`, `developer`). Added `CANONICAL_ROLES` enforcement to `tools/check_docs.js` and `tools/check_docs.py`.
+- **Evaluation Budget & Static Limits:** Replaced unenforceable 50 µs per-rule JVM timeout (`DR-DSL-04`) with a per-ruleset evaluation budget in milliseconds (`[hypothesis: 10 ms total evaluation deadline, to validate by benchmark]`) backed by primary static complexity limits (max 250 AST nodes per rule, max AST depth 15, RE2/linear regex restrictions, max 250 rules per ruleset) in docs 08, 09, 11, and `decision-register.md`.
+- **Claims Discipline & Overclaims Softening:** Reworded `ASM-LEG-02` ("may satisfy; counsel to confirm") and `ASM-LEG-03` ("assessor to determine applicable SAQ/ROC type"). Softened overclaims ("satisfies", "ensures compliance", "guarantees") across `assumptions-register.md`, `decision-register.md` (`DR-SEC-03`, `DR-ADR-01`, `DR-DES-03`), `02-discovery-plan.md`, `07-data-model.md`, `15-go-to-market.md`, `16-case-studies.md`, `adr/0003`, and `adr/0004`.
+- **Precursor Stub Cleanup:** Truncated `docs/02-customer-market-discovery-plan.md` to a concise pointer stub referencing authoritative `docs/02-discovery-plan.md`.
+- **Tooling Ported to Node.js:** Ported `tools/check_docs.py` and `tools/contrast.py` to Node.js (`tools/check_docs.js`, `tools/contrast.js`) for environments without Python 3 on PATH. Documented execution commands in `README.md`.
+- **Color Contrast Figure:** Corrected light-theme primary button contrast ratio figure in doc 10, `DESIGN.md`, and `consistency-report.md` to measured `6.79:1` (white on `#3849D6`).
+- **Standardized Status Lines:** Updated all specification status lines across docs, `00-index.md`, `CHANGELOG.md`, and `check_docs` to `Draft-complete (docs v1.0, machine-checked, not yet reviewed)` (formal approval requires human review).
 
 ---
 

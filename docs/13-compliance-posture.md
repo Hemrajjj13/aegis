@@ -1,7 +1,7 @@
 # Compliance Posture and Regulatory Alignment
 
 **Document:** 13  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect ([DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -67,7 +67,7 @@ Designed to align with RBI Master Directions on Information Technology Governanc
 - **Synchronous Administrative Chaining:** All console administrative actions (logins, rule changes, permission adjustments) are synchronously hash-chained directly in the database commit ([doc 01 §9.2](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md#92-tamper-evidence)).
 
 ### 2.5 Access Control and Dual Custody
-- **Role-Based Access Control (RBAC):** 5 strictly enforced application roles (`admin`, `risk_manager`, `risk_analyst`, `auditor`, `developer`) and 6 database service roles ([doc 07 §2](file:///c:/dev/aegis/docs/07-data-model.md#2-database-roles-and-privilege-matrix)).
+- **Role-Based Access Control (RBAC):** 7 strictly enforced application roles (`owner`, `admin`, `risk_manager`, `rule_author`, `risk_analyst`, `auditor`, `developer`) and 6 database service roles ([doc 07 §2](file:///c:/dev/aegis/docs/07-data-model.md#2-database-roles-and-privilege-matrix)).
 - **Maker-Checker Rule Promotion:** Enforces dual custody on all rule deployments. A rule author cannot approve or deploy their own rule ([doc 09 §6](file:///c:/dev/aegis/docs/09-rule-dsl-spec.md#6-rule-lifecycle-and-maker-checker-dual-control)).
 - **Multi-Factor Authentication (MFA):** Mandatory RFC 6238 TOTP authenticator verification on all console logins ([DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md), [ADR-0007](file:///c:/dev/aegis/docs/adr/0007-identity-behind-a-port.md)).
 

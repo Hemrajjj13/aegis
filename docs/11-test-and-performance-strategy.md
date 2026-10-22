@@ -1,7 +1,7 @@
 # Test and Performance Strategy
 
 **Document:** 11  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -345,7 +345,7 @@ Every code change must pass through automated CI pipelines in GitHub Actions bef
    - ArchUnit tests: Enforces that `evaluation-core` contains zero references to `Clock.systemUTC()`, `Instant.now()`, or `LocalDateTime.now()` ([ADR-0003](file:///c:/dev/aegis/docs/adr/0003-event-time-for-deterministic-replay.md)).
    - Semgrep & Snyk: Dependency vulnerability scan (zero high/critical CVEs).
 2. **Gate 2: Unit & Domain Tests (Runtime: < 1 min):**
-   - 100% pass on rule parsing, CEL evaluation, score clamping, and reason code formatting.
+   - 100% pass on rule parsing, CEL evaluation, score clamping, reason code formatting, static AST complexity limits ($\le 250$ nodes, depth $\le 15$), RE2 linear regex safety, and per-ruleset evaluation budget enforcement (10 ms deadline [hypothesis, to validate by benchmark]).
 3. **Gate 3: Testcontainers Integration Suite (Runtime: < 5 min):**
    - `VelocityConcurrencyIntegrationTest` (20 parallel requests at limit 5).
    - `DuplicateDeliveryIntegrationTest` (3x identical delivery).

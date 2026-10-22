@@ -1,5 +1,5 @@
 # Glossary
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Last updated:** October 2026
 
 Terms are defined as they are used within Aegis documentation and the codebase.
@@ -11,7 +11,9 @@ Terms in **bold** in a definition are themselves defined in this glossary.
 | Term | Definition |
 |------|-----------|
 | **account_id** | The identifier for an account within a **tenant**. Aegis stores a tenant-keyed hash of this identifier, not the raw value. |
+| **admin** | Canonical **human role**: Administrative management of users, API keys, environment configuration, and tenant settings. Cannot approve rule changes; cannot approve own invitation. See doc 01 §11.1, doc 19 §2. |
 | **audit trail** | An append-only, hash-chained log of every **decision**, rule change, login, permission change, and data export. Stored per tenant in Postgres and exported daily to S3 with Object Lock. |
+| **auditor** | Canonical **human role**: Read-only compliance and regulatory audit access, including full immutable audit log inspection, Merkle proof verification, and export generation. Cannot modify any configuration or data. See doc 01 §11.1, doc 19 §2. |
 | **batch sealer** | A background scheduled job that runs every 30 seconds (configurable) and seals unsealed **decision** records into a **Merkle root**-based hash chain. See ADR-0004. The batch sealer does not block the decision write path. |
 | **canary** | A rollout stage in which a new **ruleset** is applied to a configurable percentage of live traffic before full promotion. |
 | **circuit breaker** | A mechanism that stops calling a downstream service (e.g., an enrichment provider) after a threshold of failures, to prevent cascading timeouts. During a circuit-open state, the step is skipped and the **decision** is marked **degraded**. |
@@ -26,6 +28,7 @@ Terms in **bold** in a definition are themselves defined in this glossary.
 | **decision_id** | A UUID assigned to each **decision** by Aegis. Globally unique. Used for idempotency checks and downstream deduplication. |
 | **degraded** | A flag on a **decision** indicating that the evaluation could not complete normally (e.g., a feature step timed out). The **fail policy** was applied to produce the outcome. |
 | **deployment tiers** | The three operational footprints sharing the identical unified codebase (Decision D1): **Tier 0** (developer workstation Docker Compose, RAM budget $\le 3.89$ GB), **Tier 1** (single-AZ AWS shadow mode pilot, ~$450–$650/mo), and **Tier 2** (multi-AZ managed enterprise production). See doc 14 §2.1. |
+| **developer** | Canonical **human role**: Technical platform integration role managing API keys, webhooks, and sandbox environments; denied production PII view access by default. See doc 01 §11.1, doc 19 §2. |
 | **design partner** | A customer who uses Aegis in shadow or pilot mode in exchange for discounted or free access, feedback, and case-study rights. |
 | **DPDP Act 2023** | Digital Personal Data Protection Act 2023 (India). Governs collection, use, and storage of personal data of Indian residents. *Needs counsel verification for its application to Aegis.* |
 | **EvaluationCore** | The pure Java 21 evaluation kernel in `aegis-core` that executes compiled CEL rules and velocity sliding windows against payment events with zero runtime external I/O or wall-clock dependencies. See doc 17 §3.1. |
@@ -53,6 +56,7 @@ Terms in **bold** in a definition are themselves defined in this glossary.
 | **Modular Monolith** | The chosen application architecture for Project Aegis (ADR-0001): a single deployable JVM application partitioned internally into strictly decoupled modules with enforced architectural boundaries, avoiding microservices distributed network latency and operational complexity in early stages. |
 | **multi-tenancy** | The architecture property by which a single Aegis deployment serves multiple independent customers (**tenants**). Isolation is enforced by row-level security in Postgres and by scoping every Redis key and Kafka key with **tenant_id**. |
 | **outbox** | A Postgres table written in the same transaction as a **decision**. A relay process reads committed outbox rows and publishes them to Kafka, ensuring that every persisted decision eventually produces a downstream event without requiring a distributed transaction. See ADR-0002. |
+| **owner** | Canonical **human role**: Organization superuser with full authority over billing, tenant configuration, user management, and tenant deletion. See doc 01 §11.1, doc 19 §2. |
 | **PAN (Primary Account Number)** | A card number conforming to ISO 7812. Aegis never accepts, stores, or logs a raw PAN. Protection uses a two-layer approach: strict typed schema validation (rejecting unexpected strings in numeric/typed fields) and Luhn-valid 13–19 digit scanning on free-text/unknown fields. |
 | **PCI DSS** | Payment Card Industry Data Security Standard. A security standard for organisations that handle branded payment cards. *Needs counsel verification for scope applicability to Aegis.* |
 | **processed_events** | A Postgres table with a unique constraint on `(tenant_id, event_id)`. An insert into this table and an insert into `decisions` occur in the same database transaction, providing exactly-once **decision** semantics under at-least-once Kafka delivery. |
@@ -61,7 +65,10 @@ Terms in **bold** in a definition are themselves defined in this glossary.
 | **reconciliation job** | A periodic job that rebuilds **velocity** counters in Redis from the source-of-truth data in Postgres, detects drift, and alerts if drift exceeds a threshold. |
 | **replay** | The process of running a historical dataset through the evaluation core with a specified **ruleset** (or two rulesets for comparison), producing isolated results in `replay_*` tables keyed by **run_id**. |
 | **replay determinism** | The property that running the same dataset through the same **ruleset** produces identical **decisions** on any two runs, regardless of when or on which machine the replay executes. Achieved by using **event_time** and ordering events by `(event_time, sequence_number)`. |
-| **run_id** | A UUID assigned to a **replay** run. All results and feature state for that run are namespaced by this identifier. The live decision tables are never written by a replay run. |
+| **risk_analyst** | Canonical **human role**: Frontline risk investigator who operates the case review queue, reviews flagged payments, submits approve/decline dispositions, and labels transactions. Prohibited from modifying production rules or system settings. See doc 01 §11.1, doc 19 §2. |
+| **risk_manager** | Canonical **human role**: Dual-control checker who reviews, approves, and promotes rulesets to canary and live stages, configures thresholds and fail policies, and executes replays. Cannot approve a ruleset they authored (maker-checker enforced). See doc 01 §11.1, doc 19 §2. |
+| **roles (canonical)** | The seven mutually agreed human roles across Aegis: **owner**, **admin**, **risk_manager**, **rule_author**, **risk_analyst**, **auditor**, **developer**. See doc 01 §11.1, doc 19 §2. |
+| **rule_author** | Canonical **human role**: Dual-control maker who drafts CEL detection rules, tests them against historical and synthetic datasets in simulation, and submits rulesets for approval. Cannot approve or publish rulesets directly to production. See doc 01 §11.1, doc 19 §2. |
 | **ruleset** | A named, versioned, and cryptographically hashed set of rules that produces a **decision** for a transaction event. Rulesets are immutable once published; changes create a new version. |
 | **ruleset version hash** | A SHA-256 hash of the complete ruleset content. Stored on every **decision** so that the exact rule logic that produced the decision can always be retrieved and reproduced. |
 | **sequence_number** | A monotonic counter per `(tenant_id, entity_id)` assigned by the originating system. Used as a tie-breaker when two events share the same **event_time**, ensuring deterministic ordering in **replay**. |
@@ -74,3 +81,18 @@ Terms in **bold** in a definition are themselves defined in this glossary.
 | **velocity** | A feature class measuring the count or sum of a field (e.g., transaction amount) for a given entity over a sliding time window. Velocity checks use an atomic Redis Lua script (production) or an **InMemoryVelocityWindow** (replay). |
 | **velocity Lua script** | A Redis Lua script that performs: (1) trim expired members, (2) check if `event_id` is already a sorted-set member (return `pass` without incrementing if so), (3) count, (4) compare to limit, (5) add `event_id` as member with `event_time` as score. Atomic; idempotent on `event_id`. See ADR-0005. |
 | **vertical slice** | A thin, end-to-end implementation of one feature path: one transaction event in, one **decision** out, one audit row visible in the console. The first milestone of the Stage 1 build. |
+
+---
+
+## Canonical Role List
+
+To prevent role drift across specifications and runtime checks, Project Aegis defines exactly seven canonical roles:
+
+1. **`owner`**: Complete authority over the tenant organization, including billing, user lifecycle, and organization deletion.
+2. **`admin`**: Administrative management of users, API keys, settings, and environments. Cannot approve rule changes; cannot approve their own invitation.
+3. **`risk_manager`**: Dual-control checker authorized to approve and promote rulesets to canary/live, set risk thresholds and fail policies, and run replays. Cannot approve rules they authored (maker-checker).
+4. **`rule_author`**: Dual-control maker authorized to draft CEL rules, run simulations against synthetic datasets, and submit rules for peer approval. Cannot publish or approve rules.
+5. **`risk_analyst`**: Frontline analyst operating the case review queue, performing transaction triage, submitting case dispositions, and labeling training data. Cannot edit rules or settings.
+6. **`auditor`**: Read-only compliance auditor with access to full tamper-evident audit ledgers, Merkle proofs, and JSON export logs. Cannot mutate any state.
+7. **`developer`**: Platform integration engineer managing API credentials, webhooks, and sandbox testing. Denied access to production PII fields by default.
+

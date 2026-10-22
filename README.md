@@ -58,16 +58,30 @@ Every other document depends on its answers.
 
 ## Status — October 2026
 
-| Document | Status |
-|----------|--------|
-| 00-index.md | Draft |
-| 01-production-readiness-discovery.md | Draft — open questions need founder input |
-| 02-customer-market-discovery-plan.md | Outline only |
-| 03-prd.md | Stub |
-| 04-sow-templates/ | Stub |
-| 05-architecture/overview.md | Draft |
-| adr/0001–0003 | Draft |
-| glossary.md | Draft |
+All 22 core architecture, API, security, compliance, frontend, backend, test, and GTM specifications are complete. See [docs/00-index.md](file:///c:/dev/aegis/docs/00-index.md) for the complete documentation index and verification status.
+
+Current Phase: **Draft-complete (docs v1.0, machine-checked, not yet reviewed)**  
+Next Phase: Founder & design partner review (Gate G1).
+
+---
+
+## Verification Tools
+
+Documentation integrity and WCAG color contrast verification scripts are available in `/tools` and run with Node.js:
+
+### Documentation Linter (`tools/check_docs.js`)
+Validates that all documentation links resolve, status lines match the specification standard (`Draft-complete (docs v1.0, machine-checked, not yet reviewed)`), canonical terms and the 7 application roles match the glossary, no ungrounded compliance claims exist, and all assumption rows are properly gated:
+```bash
+node tools/check_docs.js
+```
+*(Also available as `python tools/check_docs.py` if Python 3 is installed).*
+
+### Color Contrast Calculator (`tools/contrast.js`)
+Computes WCAG 2.1 relative luminance and contrast ratios between text and background hex colors, verifying AA / AAA thresholds:
+```bash
+node tools/contrast.js "#FFFFFF" "#3849D6"
+```
+*(Also available as `python tools/contrast.py "#FFFFFF" "#3849D6"` if Python 3 is installed).*
 
 ---
 

@@ -184,7 +184,7 @@ seconds, an alert fires. This indicates the sealer is stuck.
 | Synchronous per-record chaining for all events | Serialises decision throughput per tenant at scale; becomes the dominant latency bottleneck |
 | WAL-based tamper-evidence only | Does not produce an auditor-accessible, portable chain without WAL access |
 | Kafka-based hash chain | Adds Kafka compaction and offset-verification complexity; keeps audit evidence split across two systems |
-| No hash chaining (append-only Postgres + S3 backup immutability) | Simpler, but does not produce a verifiable chain that satisfies compliance auditors without full system access |
+| No hash chaining (append-only Postgres + S3 backup immutability) | Simpler, but does not produce a verifiable chain that meets compliance auditor needs without full system access |
 
 ## References
 

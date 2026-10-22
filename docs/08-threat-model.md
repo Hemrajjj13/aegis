@@ -1,7 +1,7 @@
 # Threat Model (STRIDE) and Security Controls Matrix
 
 **Document:** 08  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -69,7 +69,7 @@ The analysis uses Microsoft's **STRIDE** methodology (Spoofing, Tampering, Repud
 ```
 
 - **TB-1: External Perimeter:** Untrusted external callers communicating over TLS 1.3 to AWS Application Load Balancers / WAF. Requires HMAC-SHA256 request signing or OAuth2 mTLS.
-- **TB-2: Browser / Console Perimeter:** Human risk analysts and rule authors accessing the React single-page application. Authenticated via Keycloak/Spring Authorization Server session tokens (HTTP-only, Secure, SameSite cookies + MFA).
+- **TB-2: Browser / Console Perimeter:** Human operators across the seven canonical roles (`owner`, `admin`, `risk_manager`, `rule_author`, `risk_analyst`, `auditor`, `developer`) accessing the React single-page application. Authenticated via Keycloak/Spring Authorization Server session tokens (HTTP-only, Secure, SameSite cookies + MFA).
 - **TB-3: Internal Container Boundary:** Service-to-service communication within the private VPC subnet. All communication strictly enforced over private VPC DNS; mTLS in production.
 - **TB-4: Data Persistence Perimeter:** Application containers accessing managed data stores (Postgres, Redis, Kafka, S3). Access is governed by least-privilege database roles, IAM execution roles, and PostgreSQL Row-Level Security (RLS).
 - **TB-5: Replay Isolation Boundary:** Replay jobs operate in an isolated compute/sandbox boundary. Replay engine database role (`app_replay_user`) is strictly blocked from writing live tables ([ADR-0003](file:///c:/dev/aegis/docs/adr/0003-event-time-for-deterministic-replay.md), [07-data-model.md §2](file:///c:/dev/aegis/docs/07-data-model.md#L30-L50)).
@@ -295,9 +295,8 @@ Below is the STRIDE analysis conducted individually for each of the 11 container
   2. A transaction with a long, non-matching string causes catastrophic backtracking in the JVM regex engine, pinning the CPU core for seconds and exhausting the 80 ms latency budget.
 - **Defensive Mitigations:**
   - **CEL Non-Turing Completeness:** CEL natively disallows loops, recursion, and user-defined functions, bounding theoretical complexity.
-  - **Regex Compiler Validation:** During rule draft validation in `rules-service`, regular expressions are parsed and checked against RE2 linear-time safety rules (or rejected if nested quantifiers are detected).
-  - **AST Complexity Limits:** Compilation fails if AST node count exceeds 250 nodes or depth exceeds 15 levels.
-  - **Evaluation Timeout Circuit Breaker:** The evaluation core executes CEL rules with a strict deadline budget (hypothesis: 10 ms total for all rules). If exceeded, remaining rules are aborted, and the tenant's configured fail policy is triggered with `degraded = true` ([doc 01 §4](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md#L121-L145)).
+  - **AST Complexity & Static Limits:** Compilation fails if AST node count exceeds 250 nodes or depth exceeds 15 levels. Regex patterns are restricted to RE2 linear-time safety rules.
+  - **Per-Ruleset Evaluation Budget:** The evaluation core executes CEL rules with static limits as primary protection against thread exhaustion, bounded by a per-ruleset evaluation budget in milliseconds (hypothesis: 10 ms total deadline for all rules, to validate by benchmark). If the ruleset evaluation deadline is exceeded, remaining rules are aborted, and the tenant's configured fail policy is triggered with `degraded = true` ([doc 01 §4](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md#L121-L145)).
 
 ### 4.5 Abuse Case 5: Rule-Publish Maker-Checker Bypass
 - **Adversary Goal:** A rogue employee or compromised account with `Rule Author` or `Risk Manager` permissions publishes a backdoored rule that approves fraudulent transactions without secondary review.
@@ -313,7 +312,7 @@ Below is the STRIDE analysis conducted individually for each of the 11 container
     )
     ```
     Even if application-layer checks fail, PostgreSQL aborts the transaction if `author_id == approver_id` ([07-data-model.md §5.2](file:///c:/dev/aegis/docs/07-data-model.md#L210-L240)).
-  - **Role Segregation:** Only the `Risk Manager` or `Owner` role can transition rules to `APPROVED`. A `Rule Author` cannot execute approvals.
+  - **Role Segregation:** Only a distinct `Risk Manager`, `Admin`, or `Owner` can transition rules to `APPROVED`. A `Rule Author` cannot execute approvals, and no user can approve a ruleset version they authored.
   - **Immutable Audit Trail:** All approval submissions, rejections, and publications write to `audit_management_events` with cryptographic hash chaining ([ADR-0004](file:///c:/dev/aegis/docs/adr/0004-batched-audit-log-hash-chaining.md)).
 
 ### 4.6 Abuse Case 6: Poisoned Replay Dataset
@@ -358,7 +357,7 @@ Below is the STRIDE analysis conducted individually for each of the 11 container
 | **TH-05** | `stream-proc` | Unauthorized message injection into Kafka `ingest` | Kafka mTLS and SASL_SSL SCRAM-512; Confluent Schema Registry Avro validation | Platform Lead | `KafkaSecurityAclTest` (asserts unauthorized producer rejected by broker) |
 | **TH-06** | `stream-proc` | Unchecked duplicate Kafka message processing | Consumer checks Redis idempotency cache, then Lua sorted-set check, then Postgres unique constraint | Backend Lead | `KafkaConsumerIdempotencyTest` (asserts redelivered offset produces zero drift) |
 | **TH-07** | `rules-service` | Unauthorized or unilateral rule publication | Database-level `chk_maker_checker` constraint (`author_id <> approver_id`) | Backend Lead | `MakerCheckerBypassTest` (asserts author self-approval throws SQL constraint exception) |
-| **TH-08** | `rules-service` | Malicious CEL rule causing ReDoS / thread hang | AST node limit (250); depth limit (15); RE2 regex validation; 10 ms execution budget | Tech Lead | `CelExecutionSafetyTest` (asserts evil regex fails compilation or times out cleanly) |
+| **TH-08** | `rules-service` | Malicious CEL rule causing ReDoS / thread hang | AST node limit (250); depth limit (15); RE2 linear regex validation; per-ruleset 10 ms execution budget [hypothesis, to validate by benchmark] | Tech Lead | `CelExecutionSafetyTest` (asserts evil regex fails compilation or budget exceeded cleanly) |
 | **TH-09** | `rules-service` | Tampering with historical ruleset version logic | Rulesets are canonically serialized (RFC 8785) and hashed (SHA-256); verified before execution | Security Lead | `RulesetHashIntegrityTest` (asserts modified AST triggers hash mismatch error) |
 | **TH-10** | `replay-engine` | Replay batch worker writes to live decision tables | `app_replay_user` role REVOKED of all INSERT/UPDATE permissions on `decisions` and `outbox` | Data Lead | `ReplayIsolationSecurityTest` (asserts replay connection attempting live insert fails with 42501) |
 | **TH-11** | `replay-engine` | Non-deterministic replay invalidating comparison | Injected event-time clock (`java.time.Clock`); banned wall-clock calls in `evaluation-core` | QA Lead | `EvaluationCoreWallClockFreeTest` (ArchUnit test banning `Instant.now()`) |

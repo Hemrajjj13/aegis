@@ -1,7 +1,7 @@
 # Technical Proofs and Pilot Case Study Architecture
 
 **Document:** 16  
-**Status:** Approved (docs v1.0, assumption-based)
+**Status:** Draft-complete (docs v1.0, machine-checked, not yet reviewed)
 **Owner:** Founder / Lead Architect ([DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -73,7 +73,7 @@ In a fraud engine, duplicate delivery creates catastrophic false positives:
 - Duplicate decision rows are written to the database, distorting monthly merchant billing and auditing records.
 
 #### The Architecture Solution: Two-Tier Deduplication
-Aegis guarantees exactly-once decision execution semantics across distributed workers:
+Aegis enforces exactly-once decision execution semantics across distributed workers:
 1. **Tier 1 (Redis Fast Path, [ADR-0005](file:///c:/dev/aegis/docs/adr/0005-velocity-script-event-id-idempotency.md)):**
    - The Redis sorted set member is `event_id` (a unique UUID).
    - The Lua script executes `ZSCORE key event_id` before counting. If the `event_id` already exists, the script returns `pass: true, duplicate: true` without incrementing the counter.
