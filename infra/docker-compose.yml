@@ -23,7 +23,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/tier0/init-scripts:/docker-entrypoint-initdb.d
+      - ./tier0/init-scripts:/docker-entrypoint-initdb.d
     deploy:
       resources:
         limits:
@@ -100,8 +100,8 @@ services:
   # =========================================================================
   backend:
     build:
-      context: .
-      dockerfile: ./infra/tier0/Dockerfile.backend
+      context: ..
+      dockerfile: infra/docker/Dockerfile.backend
     container_name: aegis-backend-tier0
     profiles: ["core"]
     environment:
