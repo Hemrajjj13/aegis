@@ -28,13 +28,16 @@ import java.util.UUID;
 public class DecisionController {
     private final EvaluationCore evaluationCore;
     private final DecisionPersistenceService persistenceService;
+    private final com.aegis.decision.service.DecisionStreamService streamService;
     private final ObjectMapper objectMapper;
 
     public DecisionController(EvaluationCore evaluationCore,
                               DecisionPersistenceService persistenceService,
+                              com.aegis.decision.service.DecisionStreamService streamService,
                               ObjectMapper objectMapper) {
         this.evaluationCore = evaluationCore;
         this.persistenceService = persistenceService;
+        this.streamService = streamService;
         this.objectMapper = objectMapper;
     }
 
@@ -85,6 +88,8 @@ public class DecisionController {
                 evaluationResult,
                 payloadHash
         );
+
+        streamService.publishDecision(event.tenantId(), finalResult);
 
         DecisionResponse response = DecisionResponse.from(finalResult);
         return ResponseEntity.ok(response);
