@@ -9,6 +9,8 @@ import com.aegis.decision.context.TenantContextHolder;
 import com.aegis.decision.exception.RawPanProhibitedException;
 import com.aegis.decision.model.DecisionResponse;
 import com.aegis.decision.security.LuhnPanScanner;
+import com.aegis.storage.service.DecisionPersistenceService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,15 +18,24 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/v1")
 public class DecisionController {
     private final EvaluationCore evaluationCore;
+    private final DecisionPersistenceService persistenceService;
+    private final ObjectMapper objectMapper;
 
-    public DecisionController(EvaluationCore evaluationCore) {
+    public DecisionController(EvaluationCore evaluationCore,
+                              DecisionPersistenceService persistenceService,
+                              ObjectMapper objectMapper) {
         this.evaluationCore = evaluationCore;
+        this.persistenceService = persistenceService;
+        this.objectMapper = objectMapper;
     }
 
     @PostMapping("/decisions")
@@ -65,15 +76,38 @@ public class DecisionController {
         }
 
         EventClock clock = new DeterministicClock(event.eventTime());
-        EvaluationResult result = evaluationCore.evaluate(event, clock);
+        EvaluationResult evaluationResult = evaluationCore.evaluate(event, clock);
 
-        DecisionResponse response = DecisionResponse.from(result);
+        String payloadHash = computePayloadHash(event);
+        EvaluationResult finalResult = persistenceService.persistDecisionAtomically(
+                event.tenantId(),
+                event,
+                evaluationResult,
+                payloadHash
+        );
+
+        DecisionResponse response = DecisionResponse.from(finalResult);
         return ResponseEntity.ok(response);
     }
 
     private void scanForPan(String value, String fieldName) {
         if (value != null && LuhnPanScanner.containsLuhnValidPan(value)) {
             throw new RawPanProhibitedException(fieldName);
+        }
+    }
+
+    private String computePayloadHash(PaymentEvent event) {
+        try {
+            String json = objectMapper.writeValueAsString(event);
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(json.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException | com.fasterxml.jackson.core.JsonProcessingException e) {
+            return "sha256_" + event.eventId();
         }
     }
 }

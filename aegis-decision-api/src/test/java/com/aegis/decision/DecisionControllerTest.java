@@ -1,17 +1,22 @@
 package com.aegis.decision;
 
 import com.aegis.decision.filter.TenantHeaderFilter;
+import com.aegis.storage.service.DecisionPersistenceService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -23,7 +28,16 @@ class DecisionControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockBean
+    private DecisionPersistenceService persistenceService;
+
     private static final String TENANT_ID = "00000000-0000-0000-0000-000000000001";
+
+    @BeforeEach
+    void setupMock() {
+        when(persistenceService.persistDecisionAtomically(any(), any(), any(), any()))
+                .thenAnswer(inv -> inv.getArgument(2));
+    }
 
     @Test
     @DisplayName("POST /v1/decisions with amount >= 50,000 INR returns 200 OK with REVIEW outcome")
