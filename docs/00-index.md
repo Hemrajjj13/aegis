@@ -93,6 +93,7 @@ This index is the single entry point for all Project Aegis engineering, architec
 | [adr/0000-template.md](./adr/0000-template.md) | Standard template for proposing Architecture Decision Records |
 | [CHANGELOG.md](./CHANGELOG.md) | Semantic versioning log of all documentation releases and spec increments |
 | [audit/readiness-report.md](./audit/readiness-report.md) | Formal Build Readiness (7/7 passed) and Pilot Readiness evaluation report |
+| [audit/build-blockers.md](./audit/build-blockers.md) | Local development environment blockers and hardware telemetry measurements |
 | [Project Aegis Documentation Suite v0.1.md](./Project%20Aegis%20Documentation%20Suite%20v0.1.md) | Historical founding document suite and inception brief (October 2026) |
 
 ---

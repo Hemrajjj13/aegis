@@ -41,7 +41,7 @@ Captured via `Win32_OperatingSystem` telemetry:
 | **Total Physical RAM** | 7,981.12 MB (~7.79 GB) | 7,981.12 MB | Baseline Hardware Confirmed |
 | **Used RAM** | 7,213.78 MB | N/A | Host OS + Background Services |
 | **Free/Available RAM** | 767.34 MB | $\ge 916$ MB headroom | Constrained host environment |
-| **Tier 0 Container Budget** | Configured: 3,072 MB | $\le 3,890$ MB (50% RAM) | Budget Compliant (in compose file) |
+| **Tier 0 Container Budget** | Configured: 3,072 MB | $\le 3,890$ MB (50% RAM) | Designed to align with budget (in compose file) |
 
 ---
 
