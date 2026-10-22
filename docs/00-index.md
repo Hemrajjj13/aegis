@@ -51,6 +51,7 @@ This index is the single entry point for all Project Aegis engineering, architec
 | **ADR-0007** | [adr/0007-identity-behind-a-port.md](./adr/0007-identity-behind-a-port.md) | How is authentication/authorisation abstracted across deployment tiers? | Draft-complete | Decision D4 |
 | **ADR-0008** | [adr/0008-dataset-import-for-backtests.md](./adr/0008-dataset-import-for-backtests.md) | How does the dataset import pipeline enable free backtests safely? | Draft-complete | Decision D8 |
 | **ADR-0009** | [adr/0009-pre-build-schema-and-contract-corrections.md](./adr/0009-pre-build-schema-and-contract-corrections.md) | What schema, FK, case queue, and OpenAPI corrections govern pre-build contracts? | Draft-complete | AGENTS.md Law 2 |
+| **ADR-0010** | [adr/0010-repository-layout.md](./adr/0010-repository-layout.md) | How are backend, frontend, infrastructure, and tools cleanly decoupled? | Accepted | Repository Architecture |
 | **06** | [06-api-and-event-schemas.md](./06-api-and-event-schemas.md) | What are the exact OpenAPI 3.1 REST schemas and Kafka event contracts? | Draft-complete | OpenAPI Contract / Protected Doc |
 | **07** | [07-data-model.md](./07-data-model.md) | Which PostgreSQL tables exist, how is PII isolated, and what is retained? | Draft-complete | Privacy Review / Protected Doc |
 | **08** | [08-threat-model.md](./08-threat-model.md) | What are the STRIDE attack vectors, abuse cases, and security mitigations? | Draft-complete | Security Sign-off |
@@ -94,7 +95,7 @@ This index is the single entry point for all Project Aegis engineering, architec
 | [CHANGELOG.md](./CHANGELOG.md) | Semantic versioning log of all documentation releases and spec increments |
 | [audit/readiness-report.md](./audit/readiness-report.md) | Formal Build Readiness (7/7 passed) and Pilot Readiness evaluation report |
 | [audit/build-blockers.md](./audit/build-blockers.md) | Local development environment blockers and hardware telemetry measurements |
-| [Project Aegis Documentation Suite v0.1.md](./Project%20Aegis%20Documentation%20Suite%20v0.1.md) | Historical founding document suite and inception brief (October 2026) |
+| [archive/Project Aegis Documentation Suite v0.1.md](./archive/Project%20Aegis%20Documentation%20Suite%20v0.1.md) | Historical founding document suite and inception brief (October 2026) |
 
 ---
 

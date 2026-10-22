@@ -27,7 +27,7 @@ Per Decision [D1](file:///c:/dev/aegis/docs/00-decisions/decision-register.md) a
 - **Docker Compose Stack & Stats Status:**
   - `docker.exe` is not installed on the local Windows host PATH or in WSL2 Ubuntu.
   - Direct execution of `docker stats` on the live container stack is blocked pending Docker Desktop / Docker Engine installation on this workstation.
-  - Configured resource constraints in [docker-compose.yml](file:///c:/dev/aegis/docker-compose.yml) strictly enforce the 3,072 MB core limit (PostgreSQL 512MB, Redis 256MB, Kafka 768MB, Monolith 1280MB, Console 256MB).
+  - Configured resource constraints in [docker-compose.yml](file:///c:/dev/aegis/infra/docker-compose.yml) strictly enforce the 3,072 MB core limit (PostgreSQL 512MB, Redis 256MB, Kafka 768MB, Monolith 1280MB, Console 256MB).
   - Detailed environment analysis recorded in [docs/audit/build-blockers.md](file:///c:/dev/aegis/docs/audit/build-blockers.md).
 
 ---
@@ -45,7 +45,7 @@ Docker Compose services are segmented into three operational profiles to prevent
 │    - Redis 7 (Velocity Sorted Sets & Lua)         :  256 MB limit      │
 │    - Kafka KRaft (Single-Broker Message Bus)      :  768 MB limit      │
 │    - Spring Boot Monolith (`aegis-monolith`)      : 1280 MB limit      │
-│    - React Vite Console (`apps/console`)          :  256 MB limit      │
+│    - React Vite Console (`frontend`)              :  256 MB limit      │
 │    Subtotal Core Budget                           : 3,072 MB (Pass)    │
 ├────────────────────────────────────────────────────────────────────────┤
 │ 2. Profile: `observability` (Opt-in for Alert & Telemetry Testing)     │
@@ -204,8 +204,8 @@ services:
   # =========================================================================
   console:
     build:
-      context: ./apps/console
-      dockerfile: ../../infra/tier0/Dockerfile.console
+      context: ../frontend
+      dockerfile: ../infra/docker/Dockerfile.console
     container_name: aegis-console-tier0
     profiles: ["core"]
     ports:
@@ -293,16 +293,16 @@ Active version `1.0.0` containing 3 pre-compiled CEL rules:
 To maximize available host RAM and enable fast hot-reloading inside the IDE:
 ```bash
 # 1. Start backing storage and Kafka KRaft (Total footprint: ~1.54 GB)
-docker compose --profile core up -d postgres redis kafka
+docker compose -f infra/docker-compose.yml --profile core up -d postgres redis kafka
 
 # 2. Verify all backing containers are healthy
-docker compose ps
+docker compose -f infra/docker-compose.yml ps
 ```
 
 ### 6.3 Running the Backend Locally
 ```bash
 # Execute Spring Boot monolith with Tier 0 profile
-./gradlew bootRun --args='--spring.profiles.active=tier0'
+cd backend && ./gradlew bootRun --args='--spring.profiles.active=tier0'
 ```
 - API Base URL: `http://localhost:8080`
 - OpenAPI Swagger UI: `http://localhost:8080/swagger-ui.html`
@@ -310,7 +310,7 @@ docker compose ps
 
 ### 6.4 Running the Frontend Console Locally
 ```bash
-cd apps/console
+cd frontend
 npm install
 npm run dev
 ```
@@ -318,11 +318,11 @@ npm run dev
 
 ### 6.5 Running the Entire Stack in Containers
 ```bash
-docker compose --profile core up -d
+docker compose -f infra/docker-compose.yml --profile core up -d
 ```
 
 ### 6.6 Running the Concurrency and Determinism CI Suite Locally
 ```bash
 # Runs Testcontainers suite including 50-thread velocity limit concurrency test
-./gradlew test --tests "*ConcurrencyTest" --tests "*EquivalenceTest"
+cd backend && ./gradlew test --tests "*ConcurrencyTest" --tests "*EquivalenceTest"
 ```

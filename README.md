@@ -13,28 +13,82 @@ Target first customers: mid-size Indian fintechs and payment companies
 
 ---
 
-## Repository layout
+## Repository layout and common commands
 
+Per [ADR-0010: Repository Layout and Workspace Separation](file:///c:/dev/aegis/docs/adr/0010-repository-layout.md), the repository is organized into decoupled functional subsystems:
+
+```text
+aegis/
+├── README.md               # Primary project introduction and quickstart
+├── AGENTS.md               # Prime directives and constraints for coding agents
+├── DESIGN.md               # Design principles and architectural guidelines
+├── .gitignore              # Repository-wide ignore rules
+├── .gitattributes          # Line-ending and attribute definitions
+├── .editorconfig           # Editor indentation and encoding standard
+├── backend/                # Gradle multi-module root (Java 21 / Spring Boot 3.3)
+│   ├── settings.gradle.kts # Subproject declarations
+│   ├── build.gradle.kts    # Root plugin and dependency configurations
+│   ├── gradle.properties   # JVM and Gradle daemon parameters
+│   ├── gradlew / gradlew.bat / gradle/ # Gradle wrapper binaries and scripts
+│   ├── aegis-core          # Pure domain models and deterministic EventClock SPI
+│   ├── aegis-storage       # PostgreSQL persistence, Flyway migrations, and RLS
+│   ├── aegis-decision-api  # Synchronous POST /v1/decisions and SSE stream feed
+│   ├── aegis-app           # Executable Spring Boot application runner
+│   └── (module shells)     # velocity, rules, replay, identity, audit, dataset-importer
+├── frontend/               # React operator and analyst console SPA (TypeScript / Vite)
+│   └── README.md           # Console architecture and setup guide
+├── api/
+│   └── openapi.yaml        # Authoritative OpenAPI 3.1 specification
+├── infra/
+│   ├── docker-compose.yml  # Tier 0 multi-container orchestration
+│   ├── docker/             # Dockerfiles (Dockerfile.backend)
+│   └── tier0/              # Local initialization scripts (init-scripts/)
+├── docs/                   # Architectural specifications and governance registers
+│   └── archive/            # Historical founding and superseded document suites
+└── tools/                  # Verification and linting scripts (Node.js)
 ```
-/                       ← you are here
-├── README.md           ← this file
-├── docs/
-│   ├── 00-index.md                         ← documentation map and status
-│   ├── 01-production-readiness-discovery.md
-│   ├── 02-customer-market-discovery-plan.md
-│   ├── 03-prd.md
-│   ├── 04-sow-templates/
-│   │   ├── internal-build-sow.md
-│   │   └── customer-pilot-sow.md
-│   ├── 05-architecture/
-│   │   └── overview.md
-│   ├── adr/
-│   │   ├── 0000-template.md
-│   │   ├── 0001-modular-monolith-first.md
-│   │   ├── 0002-durable-decision-write-before-response.md
-│   │   └── 0003-event-time-for-deterministic-replay.md
-│   └── glossary.md
-└── (application code not yet present — docs-first phase)
+
+### Common Commands
+
+#### 1. Backend Build and Tests
+All Gradle commands execute from the `backend/` directory:
+```bash
+# Build and run full automated test suite
+cd backend && ./gradlew build
+
+# Run unit tests only
+cd backend && ./gradlew test
+
+# Start backend application locally with Tier 0 profile
+cd backend && ./gradlew bootRun --args='--spring.profiles.active=tier0'
+```
+
+#### 2. Tier 0 Infrastructure Orchestration
+Start or stop the containerized backing services (PostgreSQL 16, Redis 7, Kafka KRaft):
+```bash
+# Start backing infrastructure with core profile
+docker compose -f infra/docker-compose.yml --profile core up -d
+
+# Check container status and health
+docker compose -f infra/docker-compose.yml ps
+
+# Stop backing infrastructure
+docker compose -f infra/docker-compose.yml down
+```
+
+#### 3. Frontend Development
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+#### 4. Architecture and Documentation Verification
+Audit documentation integrity, OpenAPI 3.1 schemas, and PostgreSQL DDL:
+```bash
+node tools/check_docs.js
+node tools/check-openapi.mjs
+node tools/check-sql.mjs
 ```
 
 ---

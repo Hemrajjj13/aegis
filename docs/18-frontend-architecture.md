@@ -9,7 +9,7 @@
 
 ## 1. Purpose and System Context
 
-This specification defines the frontend architecture, component hierarchy, client-side routing, data synchronisation, state management, and accessibility standards for the **Project Aegis Console** (`apps/console`).
+This specification defines the frontend architecture, component hierarchy, client-side routing, data synchronisation, state management, and accessibility standards for the **Project Aegis Console** (`frontend`).
 
 The console is a single-page application (SPA) built with **React 18+**, **TypeScript (strict mode)**, and **Vite**, designed to serve five primary enterprise user personas across risk, compliance, engineering, and administrative roles. It provides low-latency operational oversight, interactive Common Expression Language (CEL) rule authoring with syntax validation and AST checking, deterministic historical backtesting, real-time transaction streaming, and cryptographically verified audit inspection.
 
@@ -23,10 +23,10 @@ The console is a single-page application (SPA) built with **React 18+**, **TypeS
 
 ## 2. Directory Structure and Project Organization
 
-The console frontend resides in `apps/console` within the repository structure outlined in [Document 17 §2.1](file:///c:/dev/aegis/docs/17-backend-design.md). It enforces a feature-based modular layout with strict unidirectional dependency flow:
+The console frontend resides in `frontend` within the repository structure outlined in [Document 17 §2](file:///c:/dev/aegis/docs/17-backend-design.md) and [ADR-0010](file:///c:/dev/aegis/docs/adr/0010-repository-layout.md). It enforces a feature-based modular layout with strict unidirectional dependency flow:
 
 ```
-apps/console/
+frontend/
 ├── index.html                     # HTML5 shell with root div, dark background CSS, viewport meta
 ├── vite.config.ts                 # Vite config, dev proxy, bundle analyzer, test configuration
 ├── tsconfig.json                  # Strict TypeScript configuration (noImplicitAny, strictNullChecks)
@@ -179,7 +179,7 @@ Filter and selection state is never duplicated in local `useState`. When a fraud
 To guarantee absolute contract alignment with the backend and eliminate runtime schema divergence:
 
 1. **Generation Pipeline:** The frontend API SDK is generated directly from the OpenAPI 3.1 specification defined in [Document 06 §3](file:///c:/dev/aegis/docs/06-api-and-event-schemas.md) using `openapi-typescript-codegen` into `src/api/generated/`.
-2. **Deterministic Regeneration:** Generation is invoked via `./gradlew :apps:console:generateApiClient` (or `npm run codegen`). Hand-crafting API interfaces in `src/` is strictly prohibited.
+2. **Deterministic Regeneration:** Generation is invoked via `cd backend && ./gradlew :frontend:generateApiClient` (or `npm run codegen`). Hand-crafting API interfaces in `src/` is strictly prohibited.
 3. **Transport Layer Interceptor:** A centralized client instance (`src/api/client.ts`) attaches:
    - `Authorization: Bearer <jwt_access_token>` retrieved from `AuthContext`.
    - `X-Tenant-Id: <tenant_id>` from the user's active organization.

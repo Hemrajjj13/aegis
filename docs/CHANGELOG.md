@@ -6,6 +6,23 @@
 
 All releases and architectural specification increments follow Semantic Versioning (`vMAJOR.MINOR.PATCH`).
 
+## [docs-v1.0.3] — 2026-10-22
+
+### Summary
+Repository reorganisation into decoupled top-level directories (`backend/`, `frontend/`, `infra/`, `api/`, `docs/`, `tools/`), path references update, and formal acceptance of [ADR-0010](file:///c:/dev/aegis/docs/adr/0010-repository-layout.md).
+
+### Changed & Added
+- **Accepted ADR-0010:** Formally registered and accepted [ADR-0010: Repository Layout and Workspace Separation](file:///c:/dev/aegis/docs/adr/0010-repository-layout.md).
+- **Repository Reorganisation:**
+  - Moved Gradle root and 10 backend modules (`aegis-*`), build scripts, and wrapper into `backend/`.
+  - Moved Docker compose topology into `infra/docker-compose.yml` and container Dockerfile to `infra/docker/Dockerfile.backend`.
+  - Established `frontend/` workspace placeholder with `README.md` for the React console (superseding historical `apps/console` references).
+  - Archived founding documentation suite into `docs/archive/Project Aegis Documentation Suite v0.1.md`.
+- **Path and Documentation Alignment:**
+  - Updated command invocations (`cd backend && ./gradlew build`, `docker compose -f infra/docker-compose.yml`) across [README.md](file:///c:/dev/aegis/README.md), [AGENTS.md](file:///c:/dev/aegis/AGENTS.md), and [docs/21-local-dev-environment.md](file:///c:/dev/aegis/docs/21-local-dev-environment.md).
+  - Updated path references in [docs/14-deployment-and-iac.md](file:///c:/dev/aegis/docs/14-deployment-and-iac.md), [docs/17-backend-design.md](file:///c:/dev/aegis/docs/17-backend-design.md), [docs/18-frontend-architecture.md](file:///c:/dev/aegis/docs/18-frontend-architecture.md), [docs/20-build-backlog.md](file:///c:/dev/aegis/docs/20-build-backlog.md).
+  - Added "Repository layout and common commands" quickstart section to [README.md](file:///c:/dev/aegis/README.md).
+
 ---
 
 ## [docs-v1.0.2] — 2026-10-22

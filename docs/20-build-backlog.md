@@ -60,7 +60,7 @@ Total Backlog Points: 214 Story Points
 ### Milestone M0: Scaffolding and Infrastructure Topology (13 Points)
 - **Goal:** Establish a clean, reproducible multi-module Java 21 / Spring Boot 3.3 repository and Tier 0 Docker Compose topology respecting the $\le 3.89\text{ GB}$ memory budget.
 - **Stories:**
-  - `TSK-001` (3 pts): Multi-module Gradle build scaffolding with `aegis-core`, `aegis-velocity`, `aegis-rules`, `aegis-decision-api`, `aegis-console-api`, `aegis-identity`, `aegis-replay`, `aegis-audit`, `aegis-dataset-importer`, `apps/console`. Ref: [Doc 17 §2](file:///c:/dev/aegis/docs/17-backend-design.md).
+  - `TSK-001` (3 pts): Multi-module Gradle build scaffolding under `backend/` with `aegis-core`, `aegis-velocity`, `aegis-rules`, `aegis-decision-api`, `aegis-console-api`, `aegis-identity`, `aegis-replay`, `aegis-audit`, `aegis-dataset-importer`, `frontend`. Ref: [Doc 17 §2](file:///c:/dev/aegis/docs/17-backend-design.md).
   - `TSK-002` (5 pts): Tier 0 Docker Compose setup with resource limits (PostgreSQL 512MB, Redis 256MB, Kafka KRaft 768MB) and healthy startup ordering. Ref: [Doc 21 §3](file:///c:/dev/aegis/docs/21-local-dev-environment.md).
   - `TSK-003` (5 pts): Reusable Testcontainers base classes (`PostgresIntegrationTest`, `RedisIntegrationTest`, `KafkaIntegrationTest`) with schema bootstrapping. Ref: [Doc 11 §3](file:///c:/dev/aegis/docs/11-test-and-performance-strategy.md).
 
@@ -169,16 +169,16 @@ To initiate code construction systematically without architectural deadlocks, an
 
 1. **`TSK-001`: Root Build Configuration and Gradle Multi-Module Scaffolding**
    - Action: Create root `settings.gradle.kts` and `build.gradle.kts` declaring Java 21 toolchain, Spring Boot 3.3.x plugin, and submodules: `aegis-core`, `aegis-velocity`, `aegis-rules`, `aegis-decision-api`, `aegis-console-api`, `aegis-identity`, `aegis-replay`, `aegis-audit`, `aegis-dataset-importer`.
-   - Verification: Run `./gradlew projects` and assert all modules resolve cleanly.
+   - Verification: Run `cd backend && ./gradlew projects` and assert all modules resolve cleanly.
 2. **`TSK-002`: Tier 0 Docker Compose Topology Setup**
-   - Action: Create `docker-compose.yml` declaring `postgres:16-alpine`, `redis:7-alpine`, and `confluentinc/cp-kafka:7.6.0` (KRaft mode) with memory budgets ($le 1.54\text{ GB}$ total infrastructure).
-   - Verification: Run `docker compose up -d` and assert containers reach healthy state via Docker healthchecks.
+   - Action: Create `infra/docker-compose.yml` declaring `postgres:16-alpine`, `redis:7-alpine`, and `confluentinc/cp-kafka:7.6.0` (KRaft mode) with memory budgets ($le 1.54\text{ GB}$ total infrastructure).
+   - Verification: Run `docker compose -f infra/docker-compose.yml up -d` and assert containers reach healthy state via Docker healthchecks.
 3. **`TSK-003`: Base Testcontainers Integration Harness**
    - Action: Implement abstract integration test classes in `aegis-core` and `aegis-decision-api` that spin up shared Testcontainers instances for Postgres, Redis, and Kafka.
    - Verification: Write smoke test `ContainerBootstrapTest` verifying connectivity to all three services.
 4. **`TSK-005`: Core Flyway Database Migrations (`V1` to `V3`)**
    - Action: Write `V1__init_tenants_and_core.sql`, `V2__init_rulesets.sql`, and `V3__init_decisions_and_audit.sql` Flyway scripts with Row-Level Security policies.
-   - Verification: Run `./gradlew :aegis-decision-api:flywayMigrate` against Testcontainers Postgres and assert tables exist.
+   - Verification: Run `cd backend && ./gradlew :aegis-decision-api:flywayMigrate` against Testcontainers Postgres and assert tables exist.
 5. **`TSK-009`: Deterministic EventClock SPI and Core Domain Models**
    - Action: Implement `com.aegis.core.EventClock` interface and `DeterministicClock` implementation. Define immutable `PaymentEvent`, `EvaluationResult`, and `RuleOutcome` records in `aegis-core`.
    - Verification: Unit test asserting exact microsecond stepping on `DeterministicClock.advance()`.

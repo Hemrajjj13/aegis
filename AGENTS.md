@@ -38,16 +38,16 @@ The following documents represent fundamental architectural contracts. **AI codi
 
 The following areas are designated as **Human-Review Zones**. An AI coding agent may author draft code or proposed edits in these zones, but the commit or pull request must be explicitly flagged for human inspection before merging:
 
-1. **Authentication and Identity (`aegis-identity`):**
+1. **Authentication and Identity (`backend/aegis-identity`):**
    - JWT token signing, verification, and claims serialization.
    - Argon2id password hashing parameters and salt generation.
    - TOTP secret generation, AES-256-GCM encryption, and RFC 6238 window validation.
    - Session lifecycle, refresh token rotation, and invalidation logic.
-2. **Cryptography and Audit Sealing (`aegis-audit`):**
+2. **Cryptography and Audit Sealing (`backend/aegis-audit`):**
    - Merkle tree leaf and root hashing algorithms (`AuditSealer`).
    - Constant-time secret comparison methods (`MessageDigest.isEqual`).
    - Request signature generation and validation (HMAC-SHA256).
-3. **Atomic Velocity Scripts (`aegis-velocity`):**
+3. **Atomic Velocity Scripts (`backend/aegis-velocity`):**
    - The Redis Lua sliding window script (`velocity_sliding_window.lua`).
    - Any modification to sorted set score calculation, member deduplication, or window eviction.
 4. **Database Migrations (`V*__*.sql`):**

@@ -233,7 +233,7 @@ Schema changes must never break currently running application instances (`Blue`)
 
 ### 9.1 Tier 0: Developer Laptop Cost Model
 - **Cost:** **$0.00 / month**.
-- Runs locally on the developer's workstation via Docker Compose.
+- Runs locally on the developer's workstation via Docker Compose (`docker compose -f infra/docker-compose.yml`).
 - Budget: $\le 50\%$ installed RAM (measured machine: 7.79 GB total RAM; Tier 0 envelope $\le 3.89\text{ GB}$).
 - Zero cloud expenditures.
 

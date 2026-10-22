@@ -22,7 +22,7 @@ Consistent with **ADR-0001 (Modular Monolith First)**, **ADR-0006 (Deployment Ti
 
 ## 2. Gradle Multi-Module Layout
 
-The repository is structured as a Gradle multi-module project where dependencies flow strictly downward:
+The backend is structured as a Gradle multi-module project under `backend/` where dependencies flow strictly downward:
 
 ```
                           ┌──────────────────────────┐
