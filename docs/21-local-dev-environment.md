@@ -19,6 +19,17 @@ Per Decision [D1](file:///c:/dev/aegis/docs/00-decisions/decision-register.md) a
   $$\text{Budget Limit} \le 3.89\text{ GB } (3,988\text{ MB})$$
 - **Budget Compliance:** The default `core` Compose profile is engineered to consume **3,072 MB** ($\approx 3.0\text{ GB}$), leaving an operational headroom of **916 MB** for local IDEs, background agent tools, and host operating system buffers.
 
+### 1.2 Local Workstation Environment Measurement & Host Footprint
+- **Measured Host Memory (`Win32_OperatingSystem` telemetry):**
+  - Total Physical RAM: **7,981.12 MB** (~7.79 GB)
+  - Used Memory: **7,213.78 MB**
+  - Available/Free Memory: **767.34 MB**
+- **Docker Compose Stack & Stats Status:**
+  - `docker.exe` is not installed on the local Windows host PATH or in WSL2 Ubuntu.
+  - Direct execution of `docker stats` on the live container stack is blocked pending Docker Desktop / Docker Engine installation on this workstation.
+  - Configured resource constraints in [docker-compose.yml](file:///c:/dev/aegis/docker-compose.yml) strictly enforce the 3,072 MB core limit (PostgreSQL 512MB, Redis 256MB, Kafka 768MB, Monolith 1280MB, Console 256MB).
+  - Detailed environment analysis recorded in [docs/audit/build-blockers.md](file:///c:/dev/aegis/docs/audit/build-blockers.md).
+
 ---
 
 ## 2. Tier 0 Service Architecture and Profiles
