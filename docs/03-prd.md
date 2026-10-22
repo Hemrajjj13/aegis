@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD) — Project Aegis Stage 1
 
 **Document:** 03  
-**Status:** Version 1.0 (Assumption-Based; Version 1.1 due after the first 10 discovery interviews per Gate G1)  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Product Architect ([DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 

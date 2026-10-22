@@ -1,7 +1,7 @@
 # Engineering Build Backlog and Milestone Specification
 
 **Document:** 20  
-**Status:** Approved  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -89,7 +89,7 @@ Total Backlog Points: 214 Story Points
 ### Milestone M3: Velocity Store, Redis Lua, and Concurrency Controls (34 Points)
 - **Goal:** Implement the atomic check-and-increment velocity tracking engine defending against concurrent limit bypass and duplicate Kafka deliveries.
 - **Stories:**
-  - `TSK-012` (8 pts): Author atomic Redis Lua script (`velocity_sliding_window.lua`) using sorted sets (`ZADD`, `ZREMRANGEBYSCORE`, `ZCARD`) with `event_id` idempotency check. Ref: [ADR-0005](file:///c:/dev/aegis/docs/adr/0005-redis-velocity-lua-with-event-id.md).
+  - `TSK-012` (8 pts): Author atomic Redis Lua script (`velocity_sliding_window.lua`) using sorted sets (`ZADD`, `ZREMRANGEBYSCORE`, `ZCARD`) with `event_id` idempotency check. Ref: [ADR-0005](file:///c:/dev/aegis/docs/adr/0005-velocity-script-event-id-idempotency.md).
   - `TSK-013` (5 pts): Implement `RedisVelocityStore` adapter in `aegis-velocity` calling SHA-cached Lua script with fallback recompilation. Ref: [Doc 17 §3.2](file:///c:/dev/aegis/docs/17-backend-design.md).
   - `TSK-014` (8 pts): Concurrency integration test (`VelocityLimitConcurrencyTest`): Assert that when $N=50$ parallel threads submit identical account transactions against limit $L=5$, exactly 5 approve and 45 decline. Ref: [Doc 11 §4.1](file:///c:/dev/aegis/docs/11-test-and-performance-strategy.md), [Doc 16 §3](file:///c:/dev/aegis/docs/16-case-studies.md).
   - `TSK-015` (8 pts): Implement Kafka async transaction mirror consumer with partition key `tenant_id:account_id`. Assert duplicate delivery of identical `event_id` yields exactly one decision row. Ref: [Doc 06 §4.1](file:///c:/dev/aegis/docs/06-api-and-event-schemas.md), [Doc 16 §4](file:///c:/dev/aegis/docs/16-case-studies.md).
@@ -110,8 +110,8 @@ Total Backlog Points: 214 Story Points
 ### Milestone M5: Deterministic Replay Engine (34 Points)
 - **Goal:** Replay engine enabling risk teams to evaluate candidate rulesets against historical datasets with guaranteed determinism.
 - **Stories:**
-  - `TSK-021` (8 pts): Implement `InMemoryReplayVelocityStore` utilizing Java `ConcurrentSkipListSet` maintaining strict event-time sorted ordering without wall-clock drift. Ref: [ADR-0003](file:///c:/dev/aegis/docs/adr/0003-deterministic-replay.md).
-  - `TSK-022` (8 pts): Implement `VelocityImplementationEquivalenceTest` asserting that Lua Redis velocity and Java replay velocity return identical verdicts on randomized event sequences. Ref: [ADR-0005](file:///c:/dev/aegis/docs/adr/0005-redis-velocity-lua-with-event-id.md), [Doc 11 §4.3](file:///c:/dev/aegis/docs/11-test-and-performance-strategy.md).
+  - `TSK-021` (8 pts): Implement `InMemoryReplayVelocityStore` utilizing Java `ConcurrentSkipListSet` maintaining strict event-time sorted ordering without wall-clock drift. Ref: [ADR-0003](file:///c:/dev/aegis/docs/adr/0003-event-time-for-deterministic-replay.md).
+  - `TSK-022` (8 pts): Implement `VelocityImplementationEquivalenceTest` asserting that Lua Redis velocity and Java replay velocity return identical verdicts on randomized event sequences. Ref: [ADR-0005](file:///c:/dev/aegis/docs/adr/0005-velocity-script-event-id-idempotency.md), [Doc 11 §4.3](file:///c:/dev/aegis/docs/11-test-and-performance-strategy.md).
   - `TSK-023` (8 pts): Parallel replay coordinator processing batch chunks with zero writes to live production tables (`replay_mode = true`). Ref: [Doc 17 §3.6](file:///c:/dev/aegis/docs/17-backend-design.md).
   - `TSK-024` (5 pts): Replay comparison report generator computing decision shift matrix (Approve $\rightarrow$ Decline, Decline $\rightarrow$ Approve) and latency deltas. Ref: [Doc 06 §3.4](file:///c:/dev/aegis/docs/06-api-and-event-schemas.md).
   - `TSK-025` (5 pts): Deterministic replay test asserting identical results and byte-level diff hashes on two separate executions of the same dataset $\times$ ruleset. Ref: [Doc 16 §5](file:///c:/dev/aegis/docs/16-case-studies.md).
@@ -155,7 +155,7 @@ Total Backlog Points: 214 Story Points
 - **Stories:**
   - `TSK-040` (8 pts): **Reliability Load Verification:** Execute Gatling / k6 load test asserting Tier 1 burst capacity at 1,000 req/s with server p99 latency $\le 100\text{ ms}$. Ref: [Doc 01 §12](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md), [Doc 11 §5](file:///c:/dev/aegis/docs/11-test-and-performance-strategy.md).
   - `TSK-041` (5 pts): **Chaos Injection Test:** Execute Redis primary failover and Kafka broker termination drills; assert zero duplicate velocity counts and consumer lag recovery under 5 seconds. Ref: [Doc 01 §12](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md), [Doc 12 §5](file:///c:/dev/aegis/docs/12-slos-runbooks-dr.md).
-  - `TSK-042` (5 pts): **Audit Batch Sealer Verification:** Test `AuditSealer` running against 10,000 synthetic transactions; assert SHA-256 Merkle root verification passes against external cryptographic audit tool. Ref: [Doc 01 §12](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md), [ADR-0004](file:///c:/dev/aegis/docs/adr/0004-batch-audit-sealing.md).
+  - `TSK-042` (5 pts): **Audit Batch Sealer Verification:** Test `AuditSealer` running against 10,000 synthetic transactions; assert SHA-256 Merkle root verification passes against external cryptographic audit tool. Ref: [Doc 01 §12](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md), [ADR-0004](file:///c:/dev/aegis/docs/adr/0004-batched-audit-log-hash-chaining.md).
   - `TSK-043` (5 pts): **PAN Invariant Verification Test:** Assert that: (a) typed schema rejects card numbers in integer fields; (b) free-text field containing Luhn-valid PAN is rejected with HTTP 400; (c) known false-positive string disposition is documented. Ref: [Doc 01 §12](file:///c:/dev/aegis/docs/01-production-readiness-discovery.md), [Doc 13 §2.1](file:///c:/dev/aegis/docs/13-compliance-posture.md).
   - `TSK-044` (5 pts): **Tier 1 Terraform Clean-Room Deployment:** Execute automated Terraform provisioning of Tier 1 single-AZ AWS Mumbai (`ap-south-1`) shadow mode footprint; assert healthcheck passes within 15 minutes. Ref: [Doc 14 §3](file:///c:/dev/aegis/docs/14-deployment-and-iac.md).
   - `TSK-045` (3 pts): **Gate G1 Legal Review Sign-Off:** Execute Legal Review Brief with qualified Indian legal counsel covering DPDP Act Data Processor role, RBI data localisation, and Bilateral DPA template. Ref: [Doc 13 §4](file:///c:/dev/aegis/docs/13-compliance-posture.md), [Doc 15 §5](file:///c:/dev/aegis/docs/15-go-to-market.md).

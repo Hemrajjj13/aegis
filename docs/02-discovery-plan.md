@@ -1,7 +1,7 @@
 # Customer and Market Discovery Plan
 
 **Document:** 02  
-**Status:** Active Operational Plan (Validation Track — Gate G1 Prerequisite)  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Architect ([DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 

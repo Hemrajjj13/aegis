@@ -1,7 +1,7 @@
 # Documentation Index — Project Aegis
 
 **Document:** 00  
-**Status:** Approved  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](./00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -30,6 +30,7 @@ This index is the single entry point for all Project Aegis engineering, architec
 |---|---|---|---|---|
 | **01** | [01-production-readiness-discovery.md](./01-production-readiness-discovery.md) | What does "production-ready" mean for this real-time payment decision engine? | Approved | Launch Gate Checklist §12 |
 | **02** | [02-discovery-plan.md](./02-discovery-plan.md) | How is the 200-company target list built, outreach executed, and interviews validated? | Approved | 10+ Logged Interviews (Gate G1) |
+| **02-pre** | [02-customer-market-discovery-plan.md](./02-customer-market-discovery-plan.md) | Precursor customer discovery outline *(Consolidated into Doc 02)* | Archived | Precursor Outline |
 | **03** | [03-prd.md](./03-prd.md) | What does Stage 1 ship, to whom, measured how, and what acceptance criteria apply? | Approved (v1.0) | v1.1 due post-10 interviews (Gate G1) |
 | **04a** | [04-sow-templates/internal-build-sow.md](./04-sow-templates/internal-build-sow.md) | What was the internal build contract? *(Superseded by Doc 20)* | **Superseded** | Mapped to Document 20 Backlog |
 | **04b** | [04-sow-templates/customer-pilot-sow.md](./04-sow-templates/customer-pilot-sow.md) | What do a customer pilot SOW and Master Pilot Agreement legally commit to? | Approved Template | Legal Review Brief (Gate G1 / G2) |
@@ -89,6 +90,9 @@ This index is the single entry point for all Project Aegis engineering, architec
 |---|---|
 | [glossary.md](./glossary.md) | Canonical definitions of terms used across all specifications and code |
 | [adr/0000-template.md](./adr/0000-template.md) | Standard template for proposing Architecture Decision Records |
+| [CHANGELOG.md](./CHANGELOG.md) | Semantic versioning log of all documentation releases and spec increments |
+| [audit/readiness-report.md](./audit/readiness-report.md) | Formal Build Readiness (7/7 passed) and Pilot Readiness evaluation report |
+| [Project Aegis Documentation Suite v0.1.md](./Project%20Aegis%20Documentation%20Suite%20v0.1.md) | Historical founding document suite and inception brief (October 2026) |
 
 ---
 

@@ -1,7 +1,7 @@
 # Technical Proofs and Pilot Case Study Architecture
 
 **Document:** 16  
-**Status:** Active Content & Proof Architecture (Pre-Validation Track)  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Architect ([DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 

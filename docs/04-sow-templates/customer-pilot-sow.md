@@ -1,7 +1,7 @@
 # Customer Pilot — Statement of Work Template
 
 **Document:** 04b  
-**Status:** Stub — requires legal review before use with any customer  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026
 

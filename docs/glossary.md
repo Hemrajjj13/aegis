@@ -1,6 +1,5 @@
 # Glossary
-
-**Status:** Draft  
+**Status:** Approved (docs v1.0, assumption-based)
 **Last updated:** October 2026
 
 Terms are defined as they are used within Aegis documentation and the codebase.

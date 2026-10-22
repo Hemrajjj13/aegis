@@ -1,7 +1,7 @@
 # Compliance Posture and Regulatory Alignment
 
 **Document:** 13  
-**Status:** Active Draft (Pre-Counsel Review — Subject to Gate G1 Validation)  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Architect ([DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 

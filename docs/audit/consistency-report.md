@@ -107,7 +107,7 @@ Implemented `/tools/contrast.py` adhering to W3C WCAG 2.1 relative luminance and
 | **Password Hashing (DF-07)** | Allowed Bcrypt / Argon2id interchangeably. | Standardized strictly on **Argon2id** (memory-hard, resistant to GPU/ASIC cracking). Bcrypt removed. |
 | **Kafka TLS (DF-01)** | Claimed AWS MSK supports TLS 1.3 unconditionally. | Annotated with **"verify against AWS docs"** (AWS MSK historically standardizes TLS 1.2 on managed broker endpoints). |
 | **S3 Object Lock (DF-09)** | Referenced S3 MFA-Delete combined with Object Lock compliance mode. | Annotated with **"verify against AWS docs"** (AWS S3 prohibits combining bucket-level MFA-Delete with Object Lock WORM retention). |
-| **Compliance Terminology** | "RBI Compliant Data Localisation" | Updated to **"India Payment Data Localisation Alignment"** (designed to align with RBI circulars). |
+| **Compliance Terminology** | Former phrase "RBI Compliant Data Localisation" (purged as not compliant with phrasing discipline) | Updated to **"India Payment Data Localisation Alignment"** (designed to align with RBI circulars). |
 
 ---
 

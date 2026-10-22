@@ -1,7 +1,7 @@
 # Identity, Authentication, and Session Specification
 
 **Document:** 19  
-**Status:** Approved  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 

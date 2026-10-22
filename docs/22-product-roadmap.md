@@ -1,7 +1,7 @@
 # Product Roadmap: Stages 0 to 4
 
 **Document:** 22  
-**Status:** Approved  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 
@@ -67,8 +67,8 @@ Aegis follows a disciplined, capital-efficient commercial sequence designed for 
   - Tier 0 local Docker Compose environment verified within the $\le 3.89\text{ GB}$ memory budget on measured 7.79 GB hardware ([Doc 21](file:///c:/dev/aegis/docs/21-local-dev-environment.md)).
 - **Core Deliverables:**
   - `aegis-core`: Deterministic `Clock` SPI, `DefaultEvaluationCore`, Google CEL AST parser and complexity limiter ($\le 250$ nodes).
-  - `aegis-velocity`: Atomic Redis Lua sliding window script with `event_id` membership idempotency ([ADR-0005](file:///c:/dev/aegis/docs/adr/0005-redis-velocity-lua-with-event-id.md)).
-  - `aegis-replay`: In-memory `ConcurrentSkipListSet` velocity store maintaining strict event-time ordering ([ADR-0003](file:///c:/dev/aegis/docs/adr/0003-deterministic-replay.md)).
+  - `aegis-velocity`: Atomic Redis Lua sliding window script with `event_id` membership idempotency ([ADR-0005](file:///c:/dev/aegis/docs/adr/0005-velocity-script-event-id-idempotency.md)).
+  - `aegis-replay`: In-memory `ConcurrentSkipListSet` velocity store maintaining strict event-time ordering ([ADR-0003](file:///c:/dev/aegis/docs/adr/0003-event-time-for-deterministic-replay.md)).
   - Vertical Slice (M1): Ingest one HTTP POST, evaluate against stub rule, commit to PostgreSQL with RLS, display in minimal console.
 - **Measurable Metrics (Tier 0):**
   - Concurrency test passes: Exactly $L$ of $N$ parallel threads pass ($5$ of $50$) across 100 test iterations ([Doc 11 §4.1](file:///c:/dev/aegis/docs/11-test-and-performance-strategy.md)).

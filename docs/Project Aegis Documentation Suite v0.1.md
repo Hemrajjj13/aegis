@@ -1,5 +1,8 @@
 # Project Aegis: Real-Time Transaction Decision Engine
 
+**Status:** Historical Founding Document Suite (v0.1)  
+**Last updated:** October 2026  
+
 *Documentation suite v0.1 for Hemraj Suryawanshi, October 2026. 'Aegis' is a placeholder name; check trademarks before using it.*
 
 ## 0. Read this first
@@ -427,7 +430,7 @@ You have no customers yet, so produce three honest kinds.
 2. **Benchmark case study:** the synthetic dataset, published methodology, reproducible scripts, clearly labeled as synthetic.
 3. **Pilot case studies (after design partners):** Context, Problem, Approach (shadow mode), Results, Quote, Caveats. Results to measure: decisions changed, false positives avoided, fraud caught that the old system missed, rule-change lead time before and after, analyst review time, p99 latency. Get written approval, anonymize when asked, define every metric, never overclaim.
 
-## 15. Risks and open questions
+## 15. Risks and Decision Register References (formerly Open Questions)
 
 | Risk | Why it matters | Mitigation |
 | --- | --- | --- |

@@ -1,7 +1,7 @@
 # Production-Readiness Discovery
 
 **Document:** 01  
-**Status:** Living Product Document (Decisions D1–D9 Applied)  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026
 

@@ -1,7 +1,7 @@
 # Go-To-Market and Commercial Strategy
 
 **Document:** 15  
-**Status:** Active Commercial Strategy (Pre-Validation Track — Subject to Gate G1 / G2)  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Architect ([DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 

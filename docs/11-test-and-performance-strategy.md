@@ -1,7 +1,7 @@
 # Test and Performance Strategy
 
 **Document:** 11  
-**Status:** Draft  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** Founder / Lead Architect (Decision [DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md))  
 **Last updated:** October 2026  
 

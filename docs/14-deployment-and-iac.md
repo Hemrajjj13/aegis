@@ -1,7 +1,7 @@
 # Deployment and Infrastructure as Code (IaC) Guide
 
 **Document:** 14  
-**Status:** Draft  
+**Status:** Approved (docs v1.0, assumption-based)
 **Owner:** [Decision DR-DOC-01](file:///c:/dev/aegis/docs/00-decisions/decision-register.md#DR-DOC-01) (Founder / Lead Architect)  
 **Last updated:** October 2026  
 
