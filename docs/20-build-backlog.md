@@ -23,7 +23,7 @@ This document defines the complete product build backlog for Project Aegis from 
 
 A task, story, or milestone is marked **DONE** if and only if all of the following conditions are satisfied:
 1. **Zero Production Code Without Tests:** Unit test coverage $\ge 85\%$ for domain logic (`aegis-core`). All database, Redis, and Kafka interactions validated using Testcontainers integration tests.
-2. **Determinism Invariant Satisfied:** Zero invocations of `System.currentTimeMillis()`, `Instant.now()`, or `new Random()` within `aegis-core`. All time operations derive strictly from the `com.aegis.core.Clock` SPI.
+2. **Determinism Invariant Satisfied:** Zero invocations of `System.currentTimeMillis()`, `Instant.now()`, or `new Random()` within `aegis-core`. All time operations derive strictly from the `com.aegis.core.EventClock` SPI.
 3. **No Flaky Tests:** Test suite passes 5 consecutive runs in CI without failures.
 4. **Static Analysis & Linting:** 
    - Backend: SpotBugs clean, Checkstyle clean, zero compiler warnings with `-Werror`.
@@ -69,7 +69,7 @@ Total Backlog Points: 214 Story Points
 ### Milestone M1: Vertical Slice (21 Points)
 - **Goal:** One transaction ingested via HTTP POST, evaluated against a static stub rule, decision row committed to PostgreSQL with RLS context, and audit row rendered in real-time on a minimal React console.
 - **Stories:**
-  - `TSK-004` (5 pts): `POST /v1/decisions` endpoint skeleton in `aegis-decision-api` with RFC 7807 error handler, tenant UUID header parsing, and PAN pattern rejection filter. Ref: [Doc 06 §3.1](file:///c:/dev/aegis/docs/06-api-and-event-schemas.md), [Doc 17 §4](file:///c:/dev/aegis/docs/17-backend-design.md).
+  - `TSK-004` (5 pts): `POST /v1/decisions` endpoint skeleton in `aegis-decision-api` with RFC 7807 error handler, tenant UUID header parsing, PAN pattern rejection filter, and stub evaluator. Latency recorded as an empirical baseline measurement only (formal performance regression benchmarking located in M9). Ref: [Doc 06 §2](file:///c:/dev/aegis/docs/06-api-and-event-schemas.md), [Doc 17 §4](file:///c:/dev/aegis/docs/17-backend-design.md).
   - `TSK-005` (5 pts): Flyway `V1__init_tenants_and_core.sql` and `V3__init_decisions_and_audit.sql` schema application. Ref: [Doc 17 §5](file:///c:/dev/aegis/docs/17-backend-design.md).
   - `TSK-006` (5 pts): Synchronous decision persistence pipeline via `DecisionRepository` with row-level tenant isolation assertion. Ref: [Doc 07 §2.1](file:///c:/dev/aegis/docs/07-data-model.md), [Doc 17 §3.5](file:///c:/dev/aegis/docs/17-backend-design.md).
   - `TSK-007` (3 pts): SSE endpoint `GET /v1/events/stream` emitting decision events to downstream listeners. Ref: [Doc 06 §3.5](file:///c:/dev/aegis/docs/06-api-and-event-schemas.md).
@@ -80,7 +80,7 @@ Total Backlog Points: 214 Story Points
 ### Milestone M2: Evaluation Core and Zero Wall-Clock Engine (21 Points)
 - **Goal:** Build the high-performance, deterministic evaluation kernel in pure Java 21 with zero runtime external I/O.
 - **Stories:**
-  - `TSK-009` (5 pts): Implement `com.aegis.core.Clock` SPI with fixed-instant `DeterministicClock` and wall-clock wrapper. Unit test asserting zero non-derivable time paths. Ref: [Doc 17 §3.3](file:///c:/dev/aegis/docs/17-backend-design.md).
+  - `TSK-009` (5 pts): Implement `com.aegis.core.EventClock` SPI with fixed-instant `DeterministicClock` and wall-clock wrapper. Unit test asserting zero non-derivable time paths. Ref: [Doc 17 §3.3](file:///c:/dev/aegis/docs/17-backend-design.md).
   - `TSK-010` (8 pts): Integrate Google Common Expression Language (`cel-java`) parser and compiler. Implement AST complexity validator enforcing max 250 AST nodes and regex execution limits. Ref: [Doc 09 §3](file:///c:/dev/aegis/docs/09-rule-dsl-spec.md).
   - `TSK-011` (8 pts): Implement `DefaultEvaluationCore` executing hard rules (overrides) and soft rules (scoring accumulator). Enforce score scale 0.0 to 100.0 with Review $\ge 40.0$ and Decline $\ge 75.0$. Ref: [Doc 17 §3.1](file:///c:/dev/aegis/docs/17-backend-design.md).
 
@@ -89,7 +89,7 @@ Total Backlog Points: 214 Story Points
 ### Milestone M3: Velocity Store, Redis Lua, and Concurrency Controls (34 Points)
 - **Goal:** Implement the atomic check-and-increment velocity tracking engine defending against concurrent limit bypass and duplicate Kafka deliveries.
 - **Stories:**
-  - `TSK-012` (8 pts): Author atomic Redis Lua script (`velocity_sliding_window.lua`) using sorted sets (`ZADD`, `ZREMRANGEBYSCORE`, `ZCARD`) with `event_id` idempotency check. Ref: [ADR-0005](file:///c:/dev/aegis/docs/adr/0005-velocity-script-event-id-idempotency.md).
+  - `TSK-012` (8 pts): Author atomic Redis Lua script (`velocity_sliding_window.lua`) starting from the reference script in ADR-0005 Appendix A using sorted sets (`ZADD`, `ZREMRANGEBYSCORE`, `ZCARD`) with `event_id` idempotency check. Tested against Redis 7.0 (100 runs of 50 concurrent calls at limit 5, 0 failures) and documenting the failover edge case. Ref: [ADR-0005 Appendix A](file:///c:/dev/aegis/docs/adr/0005-velocity-script-event-id-idempotency.md).
   - `TSK-013` (5 pts): Implement `RedisVelocityStore` adapter in `aegis-velocity` calling SHA-cached Lua script with fallback recompilation. Ref: [Doc 17 §3.2](file:///c:/dev/aegis/docs/17-backend-design.md).
   - `TSK-014` (8 pts): Concurrency integration test (`VelocityLimitConcurrencyTest`): Assert that when $N=50$ parallel threads submit identical account transactions against limit $L=5$, exactly 5 approve and 45 decline. Ref: [Doc 11 §4.1](file:///c:/dev/aegis/docs/11-test-and-performance-strategy.md), [Doc 16 §3](file:///c:/dev/aegis/docs/16-case-studies.md).
   - `TSK-015` (8 pts): Implement Kafka async transaction mirror consumer with partition key `tenant_id:account_id`. Assert duplicate delivery of identical `event_id` yields exactly one decision row. Ref: [Doc 06 §4.1](file:///c:/dev/aegis/docs/06-api-and-event-schemas.md), [Doc 16 §4](file:///c:/dev/aegis/docs/16-case-studies.md).
@@ -133,7 +133,7 @@ Total Backlog Points: 214 Story Points
   - `TSK-029` (5 pts): Generate TypeScript API client from OpenAPI spec via `openapi-typescript-codegen` with Axios interceptors for JWT and Tenant ID. Ref: [Doc 18 §5](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
   - `TSK-030` (8 pts): Implement `@tanstack/react-virtual` table supporting Compact (28px) and Comfortable (44px) density modes and sub-16ms scrolling. Ref: [Doc 10 §3](file:///c:/dev/aegis/docs/10-design-system-and-ux.md), [Doc 18 §7.1](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
   - `TSK-031` (8 pts): Build Live Decisions feed (`/decisions`) consuming SSE stream with 2,000-event ring buffer and `Space` pause/resume accumulator. Ref: [Doc 18 §6](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
-  - `TSK-032` (5 pts): Case Review queue (`/cases`) and slide-over detail drawer with keyboard triage shortcuts (`j`, `k`, `a`, `d`, `r`). Ref: [Doc 10 §5](file:///c:/dev/aegis/docs/10-design-system-and-ux.md), [Doc 18 §9](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
+  - `TSK-032` (8 pts): Case Review Queue subsystem: Flyway `V10__cases_and_analyst_queue.sql` schema migration (`cases` and `case_events` tables with RLS and FKs to `decisions`), `CaseRepository`, REST endpoints (`GET /v1/cases`, `POST /v1/cases/{id}/assign`, `POST /v1/cases/{id}/resolve`), and React console review queue (`/cases`) with keyboard triage shortcuts (`j`, `k`, `a`, `d`, `r`). Ref: [Doc 07 §3.5-3.6](file:///c:/dev/aegis/docs/07-data-model.md), [Doc 10 §5](file:///c:/dev/aegis/docs/10-design-system-and-ux.md), [Doc 17 §7](file:///c:/dev/aegis/docs/17-backend-design.md), [Doc 18 §7](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
   - `TSK-033` (5 pts): Monaco CEL Rule Editor with custom auto-complete, Web Worker AST validation squiggles, and diff viewer. Ref: [Doc 10 §4](file:///c:/dev/aegis/docs/10-design-system-and-ux.md), [Doc 18 §7.2](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
   - `TSK-034` (3 pts): Playwright E2E test verifying end-to-end maker-checker approval flow (`rule_author` submits, distinct `risk_manager` approves) and keyboard case triage. Ref: [Doc 18 §10](file:///c:/dev/aegis/docs/18-frontend-architecture.md).
 
@@ -165,35 +165,35 @@ Total Backlog Points: 214 Story Points
 
 ## 5. The First 10 Tasks (Immediate Implementation Order)
 
-To initiate code construction systematically without architectural deadlocks, an AI coding agent must execute the following 10 tasks in exact numerical sequence:
+To initiate code construction systematically without architectural deadlocks, an AI coding agent must execute the following 10 tasks in exact sequence to complete the vertical slice first:
 
 1. **`TSK-001`: Root Build Configuration and Gradle Multi-Module Scaffolding**
    - Action: Create root `settings.gradle.kts` and `build.gradle.kts` declaring Java 21 toolchain, Spring Boot 3.3.x plugin, and submodules: `aegis-core`, `aegis-velocity`, `aegis-rules`, `aegis-decision-api`, `aegis-console-api`, `aegis-identity`, `aegis-replay`, `aegis-audit`, `aegis-dataset-importer`.
    - Verification: Run `./gradlew projects` and assert all modules resolve cleanly.
 2. **`TSK-002`: Tier 0 Docker Compose Topology Setup**
-   - Action: Create `docker-compose.yml` declaring `postgres:16-alpine`, `redis:7-alpine`, and `confluentinc/cp-kafka:7.6.0` (KRaft mode) with memory budgets ($\le 1.54\text{ GB}$ total infrastructure).
+   - Action: Create `docker-compose.yml` declaring `postgres:16-alpine`, `redis:7-alpine`, and `confluentinc/cp-kafka:7.6.0` (KRaft mode) with memory budgets ($le 1.54\text{ GB}$ total infrastructure).
    - Verification: Run `docker compose up -d` and assert containers reach healthy state via Docker healthchecks.
 3. **`TSK-003`: Base Testcontainers Integration Harness**
    - Action: Implement abstract integration test classes in `aegis-core` and `aegis-decision-api` that spin up shared Testcontainers instances for Postgres, Redis, and Kafka.
    - Verification: Write smoke test `ContainerBootstrapTest` verifying connectivity to all three services.
-4. **`TSK-009`: Deterministic Clock SPI and Core Domain Models**
-   - Action: Implement `com.aegis.core.Clock` interface and `DeterministicClock` implementation. Define immutable `PaymentEvent`, `EvaluationResult`, and `RuleOutcome` records in `aegis-core`.
-   - Verification: Unit test asserting exact microsecond stepping on `DeterministicClock.advance()`.
-5. **`TSK-010`: CEL AST Parser and Complexity Validator**
-   - Action: Add `cel-java` dependency to `aegis-core`. Implement `CelRuleCompiler` with AST visitor asserting node count $\le 250$ and banning unapproved regex functions.
-   - Verification: Test asserting valid CEL compiles and complex nested AST ($> 250$ nodes) throws `RuleComplexityExceededException`.
-6. **`TSK-011`: Evaluation Core Accumulator Engine**
-   - Action: Implement `DefaultEvaluationCore` evaluating compiled CEL rules against `PaymentEvent`. Calculate soft score sums (0.0 to 100.0) and hard overrides.
-   - Verification: Unit test asserting correct disposition: Score 35 $\rightarrow$ `APPROVE`, Score 55 $\rightarrow$ `REVIEW`, Score 80 $\rightarrow$ `DECLINE`.
-7. **`TSK-012`: Redis Velocity Sliding Window Lua Script**
-   - Action: Create `velocity_sliding_window.lua` in `aegis-velocity/src/main/resources/lua/` with `event_id` membership idempotency and sliding window eviction.
-   - Verification: Test against local Redis verifying duplicate `event_id` execution returns previous count without double-incrementing.
-8. **`TSK-014`: Velocity Limit Concurrency Test (`VelocityLimitConcurrencyTest`)**
-   - Action: Build multi-threaded Testcontainers test firing $N=50$ concurrent requests at velocity counter with limit $L=5$.
-   - Verification: Assert `countPass == 5` and `countDecline == 45` across 100 iterations.
-9. **`TSK-005`: Core Flyway Database Migrations (`V1` to `V3`)**
+4. **`TSK-005`: Core Flyway Database Migrations (`V1` to `V3`)**
    - Action: Write `V1__init_tenants_and_core.sql`, `V2__init_rulesets.sql`, and `V3__init_decisions_and_audit.sql` Flyway scripts with Row-Level Security policies.
    - Verification: Run `./gradlew :aegis-decision-api:flywayMigrate` against Testcontainers Postgres and assert tables exist.
-10. **`TSK-004`: `POST /v1/decisions` Synchronous Ingestion Endpoint (Vertical Slice)**
-    - Action: Implement Spring Web controller in `aegis-decision-api` parsing incoming JSON, passing to `DefaultEvaluationCore`, persisting decision row, and returning 200 OK.
-    - Verification: End-to-end integration test posting JSON transaction and asserting HTTP 200 response with latency $< 20\text{ ms}$ and decision stored in Postgres.
+5. **`TSK-009`: Deterministic EventClock SPI and Core Domain Models**
+   - Action: Implement `com.aegis.core.EventClock` interface and `DeterministicClock` implementation. Define immutable `PaymentEvent`, `EvaluationResult`, and `RuleOutcome` records in `aegis-core`.
+   - Verification: Unit test asserting exact microsecond stepping on `DeterministicClock.advance()`.
+6. **`TSK-004`: `POST /v1/decisions` Synchronous Ingestion Endpoint (Vertical Slice with Stub Evaluator)**
+   - Action: Implement Spring Web controller in `aegis-decision-api` with RFC 7807 error handler, tenant UUID header parsing, PAN rejection filter, and a stub evaluator returning static verdict.
+   - Verification: End-to-end integration test posting JSON transaction and asserting HTTP 200 response with decision stored in Postgres; record latency as an empirical baseline measurement (formal regression threshold evaluated in Milestone M9).
+7. **`TSK-006`: Synchronous Decision Persistence Pipeline**
+   - Action: Implement `DecisionRepository` and `ProcessedEventsRepository` persisting decision and idempotency rows in a single transaction with RLS context.
+   - Verification: Test asserting decision committed to Postgres and second submission with same `event_id` returns cached decision.
+8. **`TSK-007`: SSE Event Stream Endpoint `GET /v1/events/stream`**
+   - Action: Implement Server-Sent Events endpoint in `aegis-decision-api` streaming evaluated decisions to connected clients.
+   - Verification: Integration test verifying subscriber receives event within 50 ms of decision commit.
+9. **`TSK-008`: Minimal React Console Live Decisions Table**
+   - Action: Build minimal React/Vite web UI displaying live decisions table connected to SSE endpoint.
+   - Verification: Browser smoke test confirming decision row appears upon HTTP POST submission.
+10. **`TSK-010`: CEL AST Parser and Complexity Validator (Initiating Milestone M2)**
+    - Action: Add `cel-java` dependency to `aegis-core`. Implement `CelRuleCompiler` with AST visitor asserting node count $le 250$ and banning unapproved regex functions, followed by `TSK-011` accumulator and Milestone M3 velocity tasks.
+    - Verification: Test asserting valid CEL compiles and complex nested AST ($> 250$ nodes) throws `RuleComplexityExceededException`.

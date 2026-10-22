@@ -26,7 +26,7 @@ Our sales motion is built entirely around an **empirical, proof-first wedge: the
 
 ### 2.2 Three Defensible Value Pillars
 1. **Mathematical Determinism (The Backtest Wedge):** Replay candidate rule changes against historical data with injected event-time clocks ([ADR-0003](file:///c:/dev/aegis/docs/adr/0003-event-time-for-deterministic-replay.md)) and in-memory velocity simulation ([ADR-0005](file:///c:/dev/aegis/docs/adr/0005-velocity-script-event-id-idempotency.md)), delivering 0.00% divergence and eliminating rule deployment anxiety.
-2. **Predictable Sub-100ms Latency:** High-throughput Java 21 evaluation core compiles Google CEL rules to ASTs executing in microseconds, respecting tight payment gateway timeout budgets ([ASM-INT-02](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md)).
+2. **Predictable Sub-100ms Latency:** High-throughput Java 21 evaluation core compiles Google CEL rules to ASTs with execution latency measured by benchmark (see doc 11), respecting tight payment gateway timeout budgets ([ASM-INT-02](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md)).
 3. **Sovereign India Zero-Trust Architecture:** Strictly zero raw PAN ingress, client-side salted hashing (`account_id_hash`, `vpa_hash`), and 100% Indian data residency in AWS Mumbai (`ap-south-1`) designed to align with RBI and DPDP Act 2023 directives ([doc 13 §2](file:///c:/dev/aegis/docs/13-compliance-posture.md#2-technical-control-mappings-designed-to-align-with)).
 
 ---

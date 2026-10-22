@@ -8,6 +8,44 @@ All releases and architectural specification increments follow Semantic Versioni
 
 ---
 
+## [docs-v1.0.2] — 2026-10-22
+
+### Summary
+Pre-build schema, contract, and architectural alignment release governed by [ADR-0009](file:///c:/dev/aegis/docs/adr/0009-pre-build-schema-and-contract-corrections.md). Standardized relational foreign keys, introduced missing analyst review case queue tables with Row-Level Security, published machine-readable canonical OpenAPI 3.1 contract (`/api/openapi.yaml`), reordered backlog build sequence to prioritize the end-to-end vertical slice, disambiguated `EventClock` SPI port, softened unmeasured latency claims, and added the canonical Redis Lua reference implementation to ADR-0005 Appendix A.
+
+### Changed & Added
+- **Accepted ADR-0009:** Formally registered and accepted [ADR-0009: Pre-build Schema and Contract Corrections](file:///c:/dev/aegis/docs/adr/0009-pre-build-schema-and-contract-corrections.md) per AGENTS.md Law 2 before applying changes to protected specifications.
+- **Relational Schema & FK Corrections (Doc 07, Doc 19):**
+  - Replaced all `REFERENCES tenants(id)` foreign keys in [docs/19-identity-and-auth-spec.md](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md) with canonical `REFERENCES tenants(tenant_id)`.
+  - Added `cases` and `case_events` DDL to [docs/07-data-model.md §3.5-3.6](file:///c:/dev/aegis/docs/07-data-model.md) with composite foreign key to `decisions(tenant_id, created_at, decision_id)` and uniqueness constraint `(tenant_id, decision_id)`.
+  - Added `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`, `FORCE ROW LEVEL SECURITY`, and `tenant_isolation` policies for `cases`, `case_events`, `audit_chain_heads`, and `maker_checker_audit` in [docs/07-data-model.md §7.1](file:///c:/dev/aegis/docs/07-data-model.md).
+  - Updated Flyway migration order in [docs/17-backend-design.md §7](file:///c:/dev/aegis/docs/17-backend-design.md) with `V10__cases_and_analyst_queue.sql`.
+  - Added full Case Review Queue task `TSK-032` (8 pts) to Milestone M7 in [docs/20-build-backlog.md](file:///c:/dev/aegis/docs/20-build-backlog.md).
+  - Corrected table mapping in [docs/audit/readiness-report.md](file:///c:/dev/aegis/docs/audit/readiness-report.md) BR-04 (removing non-existent `rules` and `decision_rule_matches` stubs, accurately reflecting all 14 active tables).
+- **Cross-Tenant Security Test Specification (Docs 08, 11):**
+  - Updated Abuse Case 3 in [docs/08-threat-model.md §4.3](file:///c:/dev/aegis/docs/08-threat-model.md) to explicitly enumerate all 14 multi-tenant tables.
+  - Added Section 4.5 `CrossTenantIsolationSecurityTest` in [docs/11-test-and-performance-strategy.md §4.5](file:///c:/dev/aegis/docs/11-test-and-performance-strategy.md) auditing unqualified queries, targeted cross-tenant queries, mutations, and unset session context.
+- **OpenAPI 3.1 Single Source of Truth (/api/openapi.yaml, Doc 06):**
+  - Created machine-readable [/api/openapi.yaml](file:///c:/dev/aegis/api/openapi.yaml) covering all 46 endpoint paths defined in Document 18 & 19 (including `POST /v1/decisions`, `GET /v1/events/stream` SSE, cases triage, ruleset simulation and maker-checker promote/rollback, replay reports, dataset import, and identity auth/session endpoints).
+  - Removed embedded raw YAML block from [docs/06-api-and-event-schemas.md §2](file:///c:/dev/aegis/docs/06-api-and-event-schemas.md) and replaced it with a pointer to `/api/openapi.yaml`.
+  - Implemented [tools/check-openapi.mjs](file:///c:/dev/aegis/tools/check-openapi.mjs) using `@apidevtools/swagger-parser` to continuously validate the contract.
+- **SQL Extraction & Verification Tooling (/tools/check-sql.mjs):**
+  - Created [tools/check-sql.mjs](file:///c:/dev/aegis/tools/check-sql.mjs) extracting 108 discrete SQL statements from docs 07 and 19, resolving topological dependency order, verifying FK targets and RLS enforcement, and applying them to a throwaway `postgres:16` container when Docker is present (or performing static DDL AST validation).
+  - Wired both `check-openapi.mjs` and `check-sql.mjs` into [tools/check_docs.js](file:///c:/dev/aegis/tools/check_docs.js) as automated checks 8 and 9.
+- **Vertical Slice Task Reordering & Measurement Baseline (Doc 20):**
+  - Reordered "The First 10 Tasks" in [docs/20-build-backlog.md §5](file:///c:/dev/aegis/docs/20-build-backlog.md) to build the end-to-end vertical slice first: `TSK-001`, `002`, `003`, `005`, `009`, `004` (with stub evaluator), `006`, `007`, `008`, followed by Milestone M2 and M3 tasks.
+  - Removed the arbitrary `< 20 ms` pass/fail criterion from `TSK-004`; recorded latency as an empirical baseline measurement, locating formal performance regression gating in Milestone M9 (`TSK-040`).
+- **EventClock SPI Port Disambiguation:**
+  - Renamed custom clock SPI `com.aegis.core.Clock` to `com.aegis.core.EventClock` across [AGENTS.md §3.2](file:///c:/dev/aegis/AGENTS.md), [ADR-0003](file:///c:/dev/aegis/docs/adr/0003-event-time-for-deterministic-replay.md), [docs/11-test-and-performance-strategy.md](file:///c:/dev/aegis/docs/11-test-and-performance-strategy.md), [docs/17-backend-design.md](file:///c:/dev/aegis/docs/17-backend-design.md), and [docs/20-build-backlog.md](file:///c:/dev/aegis/docs/20-build-backlog.md) to eliminate collisions with standard `java.time.Clock`.
+- **Claims Discipline Standard:**
+  - Replaced unmeasured phrases ("evaluates in microseconds", "microsecond p99") in [docs/03-prd.md §5](file:///c:/dev/aegis/docs/03-prd.md), [docs/09-rule-dsl-spec.md §1, §7](file:///c:/dev/aegis/docs/09-rule-dsl-spec.md), and [docs/15-go-to-market.md §2](file:///c:/dev/aegis/docs/15-go-to-market.md) with "measured by benchmark (see doc 11)".
+- **Redis Lua Velocity Reference Script (ADR-0005 Appendix A):**
+  - Appended the normative sliding-window reference Lua script as Appendix A of [ADR-0005](file:///c:/dev/aegis/docs/adr/0005-velocity-script-event-id-idempotency.md), requiring `TSK-012` to start from it.
+  - Recorded Redis 7.0 benchmark validation (100 runs of 50 concurrent calls at limit 5, 0 failures).
+  - Documented the ungraceful failover edge condition (state loss prior to replication + `processed_events` constraint protection + offline reconciliation bounding).
+
+---
+
 ## [docs-v1.0.1] — 2026-10-22
 
 ### Summary

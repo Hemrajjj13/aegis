@@ -1,7 +1,7 @@
-﻿================================================================================
+================================================================================
 Project Aegis - Documentation & Architecture Audit (check_docs.js)
 ================================================================================
-Discovered 43 markdown files across /docs, README.md, and AGENTS.md.
+Discovered 44 markdown files across /docs, README.md, and AGENTS.md.
 
 Checking 1: Relative and file:/// Markdown Links...
   -> PASS
@@ -16,6 +16,10 @@ Checking 5: Canonical Glossary Terms & Enum Consistency (incl. 7 Roles)...
 Checking 6: Phrasing Discipline (No 'compliant' outside disclaimer)...
   -> PASS
 Checking 7: Assumptions Register Gate/Owner/Method Completeness...
+  -> PASS
+Checking 8: OpenAPI 3.1 Schema Validation (/api/openapi.yaml)...
+  -> PASS
+Checking 9: PostgreSQL DDL Extraction & Dependency Order Validation...
   -> PASS
 
 ================================================================================

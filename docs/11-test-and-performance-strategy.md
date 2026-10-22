@@ -180,6 +180,37 @@ The following four tests are mandatory CI gates. A failure in any of these tests
   - For 100% of the 5,000 events:
     $$\text{verdict}_{\text{lua}} == \text{verdict}_{\text{inmem}} \quad \land \quad \text{count}_{\text{lua}} == \text{count}_{\text{inmem}} \quad \land \quad \text{duplicate}_{\text{lua}} == \text{duplicate}_{\text{inmem}}$$
 
+### 4.5 Cross-Tenant Row-Level Security Test (`CrossTenantIsolationSecurityTest`)
+- **Objective:** Verify that PostgreSQL Row-Level Security (`ENABLE ROW LEVEL SECURITY` and `FORCE ROW LEVEL SECURITY`) physically prevents data leakage or tampering between tenants across all multi-tenant tables ([ADR-0009](file:///c:/dev/aegis/docs/adr/0009-pre-build-schema-and-contract-corrections.md), [doc 07 §7.1](file:///c:/dev/aegis/docs/07-data-model.md)).
+- **Scope of Tables Audited:** All 14 tenant-bearing tables:
+  1. `decisions`
+  2. `processed_events`
+  3. `outbox`
+  4. `rulesets`
+  5. `ruleset_versions`
+  6. `maker_checker_audit`
+  7. `decision_audit_batches`
+  8. `audit_chain_heads`
+  9. `audit_management_events`
+  10. `cases`
+  11. `case_events`
+  12. `replay_runs`
+  13. `replay_decisions`
+  14. `dataset_imports`
+- **Setup:**
+  - Create two distinct tenants in PostgreSQL: `Tenant A` and `Tenant B`.
+  - Populate synthetic records for both tenants across all 14 tables using administrative setup credentials.
+- **Execution & Scenarios:**
+  1. **Unqualified Query Isolation:** Connect as runtime application user (`app_console_user`) with session variable `SET LOCAL app.current_tenant_id = '<Tenant A UUID>'`. Execute `SELECT * FROM <table>` (without any `WHERE tenant_id = ...` predicate) for each of the 14 tables.
+  2. **Targeted Cross-Tenant Query Block:** Execute targeted queries filtering directly on Tenant B records: `SELECT * FROM <table> WHERE tenant_id = '<Tenant B UUID>'` or `WHERE primary_key = '<Tenant B Entity ID>'`.
+  3. **Cross-Tenant Mutation Block:** Attempt `UPDATE` and `DELETE` queries targeting Tenant B rows while authenticated as Tenant A.
+  4. **Unset Session Guard:** Query without executing `SET LOCAL app.current_tenant_id`.
+- **Assertions:**
+  1. Unqualified queries on all 14 tables return only records where `tenant_id == Tenant A`. Zero rows from Tenant B are returned.
+  2. Targeted queries attempting to read Tenant B records return exactly 0 rows.
+  3. Cross-tenant `UPDATE` and `DELETE` statements report 0 affected rows.
+  4. Unset session context returns 0 rows (fail-closed security baseline).
+
 ---
 
 ## 5. Synthetic Fraud Data Generator Specification
@@ -342,7 +373,7 @@ Every code change must pass through automated CI pipelines in GitHub Actions bef
 
 1. **Gate 1: Static Analysis & Security Scan (Runtime: < 2 min):**
    - Checkstyle & Spotless code formatting.
-   - ArchUnit tests: Enforces that `evaluation-core` contains zero references to `Clock.systemUTC()`, `Instant.now()`, or `LocalDateTime.now()` ([ADR-0003](file:///c:/dev/aegis/docs/adr/0003-event-time-for-deterministic-replay.md)).
+   - ArchUnit tests: Enforces that `evaluation-core` contains zero references to `Clock.systemUTC()`, `Instant.now()`, or `LocalDateTime.now()`, and all temporal operations resolve strictly through the `com.aegis.core.EventClock` SPI ([ADR-0003](file:///c:/dev/aegis/docs/adr/0003-event-time-for-deterministic-replay.md), [AGENTS.md](file:///c:/dev/aegis/AGENTS.md)).
    - Semgrep & Snyk: Dependency vulnerability scan (zero high/critical CVEs).
 2. **Gate 2: Unit & Domain Tests (Runtime: < 1 min):**
    - 100% pass on rule parsing, CEL evaluation, score clamping, reason code formatting, static AST complexity limits ($\le 250$ nodes, depth $\le 15$), RE2 linear regex safety, and per-ruleset evaluation budget enforcement (10 ms deadline [hypothesis, to validate by benchmark]).

@@ -50,6 +50,7 @@ This index is the single entry point for all Project Aegis engineering, architec
 | **ADR-0006** | [adr/0006-deployment-tiers.md](./adr/0006-deployment-tiers.md) | How do deployment tiers (Tier 0, 1, 2) operate from a unified codebase? | Draft-complete | Decision D1, D6, D7 |
 | **ADR-0007** | [adr/0007-identity-behind-a-port.md](./adr/0007-identity-behind-a-port.md) | How is authentication/authorisation abstracted across deployment tiers? | Draft-complete | Decision D4 |
 | **ADR-0008** | [adr/0008-dataset-import-for-backtests.md](./adr/0008-dataset-import-for-backtests.md) | How does the dataset import pipeline enable free backtests safely? | Draft-complete | Decision D8 |
+| **ADR-0009** | [adr/0009-pre-build-schema-and-contract-corrections.md](./adr/0009-pre-build-schema-and-contract-corrections.md) | What schema, FK, case queue, and OpenAPI corrections govern pre-build contracts? | Draft-complete | AGENTS.md Law 2 |
 | **06** | [06-api-and-event-schemas.md](./06-api-and-event-schemas.md) | What are the exact OpenAPI 3.1 REST schemas and Kafka event contracts? | Draft-complete | OpenAPI Contract / Protected Doc |
 | **07** | [07-data-model.md](./07-data-model.md) | Which PostgreSQL tables exist, how is PII isolated, and what is retained? | Draft-complete | Privacy Review / Protected Doc |
 | **08** | [08-threat-model.md](./08-threat-model.md) | What are the STRIDE attack vectors, abuse cases, and security mitigations? | Draft-complete | Security Sign-off |

@@ -16,7 +16,7 @@ This document specifies the domain-specific language (DSL), execution semantics,
 The rule engine implements six non-negotiable architectural requirements:
 1. **Deterministic and Side-Effect Free:** A rule is a pure function: `f(event, features, clock) -> RuleOutcome`. Given identical inputs, it produces the identical verdict on any machine at any time (ADR-0003).
 2. **Sub-Millisecond Evaluation:** A complete ruleset containing 50–200 rules must evaluate in < 10 ms (budgeted 10 ms p99 in doc 01 §3.1 [hypothesis, to validate by benchmark]).
-3. **Common Expression Language (CEL):** Instead of building a custom parser or embedding an unconstrained language (like JavaScript or Groovy), Aegis uses CEL (Google Common Expression Language). CEL is non-Turing complete, type-safe, side-effect free, memory-bounded, and evaluates in microseconds.
+3. **Common Expression Language (CEL):** Instead of building a custom parser or embedding an unconstrained language (like JavaScript or Groovy), Aegis uses CEL (Google Common Expression Language). CEL is non-Turing complete, type-safe, side-effect free, memory-bounded, and evaluates with latency measured by benchmark (see doc 11).
 4. **Full Explainability:** Every decision must detail exactly which rules fired, their numerical score contribution, and standardized machine-readable reason codes (doc 01 §9.1).
 5. **Hard Rule Precedence:** Critical blocks (e.g., sanctioned accounts, stolen cards) bypass soft scoring and force an immediate verdict.
 6. **Immutable Cryptographic Versioning:** Rulesets are hashed canonically (SHA-256). Decisions link to this immutable version hash for life (ADR-0003).
@@ -318,7 +318,7 @@ The replay engine generates a structured comparison report containing:
 - **Confusion Matrix:** Evaluated against labeled historical datasets (ground truth fraud chargebacks):
   - True Positive Rate (Recall improvement)
   - False Positive Rate (FPR reduction)
-- **Latency Distribution:** p50, p95, p99 microsecond execution times for Version A vs. Version B.
+- **Latency Distribution:** p50, p95, p99 execution times for Version A vs. Version B, measured by benchmark (see doc 11).
 - **Live Divergence:** `replay_divergence_pct` tracking live vs. event-time concurrency ordering variance (ADR-0003).
 
 ---

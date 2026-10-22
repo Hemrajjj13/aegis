@@ -160,7 +160,7 @@ Project Aegis provides:
   2. False positive reduction count and currency volume.
   3. Incremental fraud caught that the baseline system approved.
   4. Decision distribution: % Approved, % Declined, % Reviewed.
-  5. Microsecond execution latency percentiles (p50, p95, p99).
+  5. Execution latency percentiles (p50, p95, p99), measured by benchmark (see doc 11).
 
 ---
 

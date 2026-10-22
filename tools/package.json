@@ -1,0 +1,20 @@
+{
+  "name": "tools",
+  "version": "1.0.0",
+  "description": "",
+  "main": "check_docs.js",
+  "scripts": {
+    "test": "node check_docs.js",
+    "check:docs": "node check_docs.js",
+    "check:openapi": "node check-openapi.mjs",
+    "check:sql": "node check-sql.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^13.1.0",
+    "yaml": "^2.9.1"
+  }
+}

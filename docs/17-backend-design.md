@@ -15,7 +15,7 @@ Consistent with **ADR-0001 (Modular Monolith First)**, **ADR-0006 (Deployment Ti
 
 ### 1.1 Core Engineering Invariants
 1. **Zero I/O in the Core:** The `aegis-core` module contains purely deterministic rule evaluation logic, AST parsing, and score clamping. It has zero Spring dependencies, zero database access, and zero network calls.
-2. **Explicit Time Injection:** The system clock is never invoked directly inside evaluation logic. Time is always passed explicitly as an `Instant eventTime` parameter ([ADR-0003](file:///c:/dev/aegis/docs/adr/0003-event-time-for-deterministic-replay.md), [AGENTS.md](file:///c:/dev/aegis/AGENTS.md)).
+2. **Explicit Time Injection (`EventClock` SPI):** The system clock is never invoked directly inside evaluation logic. All temporal operations resolve through the `com.aegis.core.EventClock` port passed explicitly in the evaluation context ([ADR-0003](file:///c:/dev/aegis/docs/adr/0003-event-time-for-deterministic-replay.md), [AGENTS.md](file:///c:/dev/aegis/AGENTS.md)).
 3. **Transactional Decision Writes:** A decision row, its deduplication marker (`processed_events`), and its Kafka outbox row are committed synchronously to PostgreSQL in the identical database transaction before the HTTP response is returned to the caller ([ADR-0002](file:///c:/dev/aegis/docs/adr/0002-durable-decision-write-before-response.md)).
 
 ---
@@ -373,6 +373,7 @@ Flyway DDL migrations in `aegis-storage/src/main/resources/db/migration` execute
 7. `V7__init_replay_tables.sql`: `replay_runs` and `replay_decisions` (isolated role permissions).
 8. `V8__init_dataset_imports.sql`: `dataset_imports` table for CSV/Parquet uploads ([Decision D8](file:///c:/dev/aegis/docs/00-decisions/assumptions-register.md)).
 9. `V9__init_auth_and_sessions.sql`: Users, credentials, TOTP secrets, invites, and sessions ([doc 19](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md)).
+10. `V10__cases_and_analyst_queue.sql`: `cases` and `case_events` tables with Row-Level Security (RLS) and foreign keys to `decisions` ([doc 07 §3.5-3.6](file:///c:/dev/aegis/docs/07-data-model.md), [ADR-0009](file:///c:/dev/aegis/docs/adr/0009-pre-build-schema-and-contract-corrections.md)).
 
 ---
 

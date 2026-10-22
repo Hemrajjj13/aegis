@@ -275,15 +275,15 @@ Below is the STRIDE analysis conducted individually for each of the 11 container
   - **PostgreSQL Unique Constraint:** In the event of Redis cache eviction, the unique constraint on `processed_events(tenant_id, event_id)` prevents duplicate processing ([07-data-model.md §3.2](file:///c:/dev/aegis/docs/07-data-model.md#L110-L135)).
 
 ### 4.3 Abuse Case 3: Tenant Isolation Bypass via Row-Level Security (RLS) Gap
-- **Adversary Goal:** A compromised or malicious tenant crafts queries or API inputs that leak another tenant's decisions, rulesets, or velocity profiles.
+- **Adversary Goal:** A compromised or malicious tenant crafts queries or API inputs that leak another tenant's decisions, rulesets, cases, audit logs, or velocity profiles.
 - **Attack Vector:**
-  1. Tenant A invokes a console API endpoint passing a transaction UUID belonging to Tenant B.
+  1. Tenant A invokes a console API endpoint passing an entity UUID (decision, case, rule, or audit batch) belonging to Tenant B.
   2. If the application layer forgets to include `WHERE tenant_id = :tenantId`, the record is exposed.
 - **Defensive Mitigations:**
-  - **Forced Database RLS:** PostgreSQL Row-Level Security is enabled and forced (`FORCE ROW LEVEL SECURITY`) on all multi-tenant tables.
+  - **Forced Database RLS Across All Tables:** PostgreSQL Row-Level Security is enabled and forced (`FORCE ROW LEVEL SECURITY`) on every multi-tenant table without exception: `decisions`, `processed_events`, `outbox`, `rulesets`, `ruleset_versions`, `maker_checker_audit`, `decision_audit_batches`, `audit_chain_heads`, `audit_management_events`, `cases`, `case_events`, `replay_runs`, `replay_decisions`, `dataset_imports` ([ADR-0009](file:///c:/dev/aegis/docs/adr/0009-pre-build-schema-and-contract-corrections.md), [07-data-model.md §7.1](file:///c:/dev/aegis/docs/07-data-model.md)).
   - **Session Context Binding:** Spring Boot's connection interceptor executes `SET LOCAL app.current_tenant_id = :tenantId` on every connection checkout from HikariCP.
-  - **Zero BYPASSRLS Roles:** Runtime database roles (`app_live_user`, `app_console_user`, `app_replay_user`) are strictly denied the `BYPASSRLS` privilege ([07-data-model.md §7](file:///c:/dev/aegis/docs/07-data-model.md#L285-L345)).
-  - **Automated Multi-Tenant Penetration Tests:** CI test `CrossTenantIsolationSecurityTest` queries every table using Tenant A credentials while asserting Tenant B data returns 0 rows.
+  - **Zero BYPASSRLS Roles:** Runtime database roles (`app_live_user`, `app_console_user`, `app_replay_user`) are strictly denied the `BYPASSRLS` privilege ([07-data-model.md §7](file:///c:/dev/aegis/docs/07-data-model.md)).
+  - **Automated Multi-Tenant Penetration Tests:** CI test `CrossTenantIsolationSecurityTest` queries all 14 tenant tables using Tenant A credentials while asserting Tenant B data returns 0 rows, verifying read, write, and audit isolation.
 
 ### 4.4 Abuse Case 4: Malicious CEL Rule (ReDoS and Resource Exhaustion)
 - **Adversary Goal:** A rogue Rule Author writes a rule with catastrophic regex backtracking (Regular Expression Denial of Service) or extreme memory allocation to freeze the `evaluation-core` and cause decision latency timeouts.

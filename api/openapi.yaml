@@ -1,0 +1,1917 @@
+openapi: 3.1.0
+info:
+  title: Project Aegis API
+  version: 1.0.0
+  description: >
+    Production-grade, real-time transaction decision engine, backtesting platform,
+    and fraud case management API. All temporal evaluation is deterministic.
+  contact:
+    name: Project Aegis Architecture Team
+    email: lead@projectaegis.in
+servers:
+  - url: https://api.projectaegis.in/v1
+    description: Production API Gateway
+  - url: https://sandbox.projectaegis.in/v1
+    description: Sandbox Environment
+  - url: http://localhost:8080/v1
+    description: Tier 0 Local Development
+
+security:
+  - BearerAuth: []
+  - ApiKeyHmac: []
+
+paths:
+  # ============================================================================
+  # Ingestion & Synchronous Decisions
+  # ============================================================================
+  /decisions:
+    post:
+      summary: Evaluate Transaction Event
+      description: Synchronous transaction evaluation returning APPROVE, DECLINE, or REVIEW.
+      operationId: evaluateDecision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionEvent'
+      responses:
+        '200':
+          description: Decision successfully evaluated and committed to audit log.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionResponse'
+        '400':
+          description: Invalid transaction payload, PAN pattern detected, or schema mismatch.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication failed or missing credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - caller lacks permissions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Idempotency conflict - duplicate event ID with differing payload hash.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service temporarily degraded or unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: List Historical Decisions
+      description: Query historical decisions with filtering by date, outcome, score, and account hash.
+      operationId: listDecisions
+      parameters:
+        - name: from_time
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: to_time
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: outcome
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [APPROVE, DECLINE, REVIEW]
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Paginated list of historical decisions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DecisionResponse'
+                  total:
+                    type: integer
+        '401':
+          description: Authentication failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /decisions/{decision_id}:
+    get:
+      summary: Get Decision by ID
+      description: Retrieve granular decision record including fired rules, feature snapshots, and latency metrics.
+      operationId: getDecisionById
+      parameters:
+        - name: decision_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detailed decision record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionDetail'
+        '404':
+          description: Decision record not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ============================================================================
+  # Real-Time Telemetry (Server-Sent Events)
+  # ============================================================================
+  /events/stream:
+    get:
+      summary: Live Decision Event Stream (SSE)
+      description: Real-time Server-Sent Events stream delivering live decision events to operator consoles.
+      operationId: streamLiveEvents
+      responses:
+        '200':
+          description: Continuous Server-Sent Events stream.
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '401':
+          description: Authentication failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ============================================================================
+  # Case Review Queue & Analyst Operations
+  # ============================================================================
+  /cases:
+    get:
+      summary: List Review Cases
+      description: Query manual review queue cases filtered by status, priority, and assigned analyst.
+      operationId: listCases
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [OPEN, ASSIGNED, RESOLVED, CLOSED]
+        - name: priority
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        - name: assigned_to
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of review cases.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [cases, total]
+                properties:
+                  cases:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CaseSummary'
+                  total:
+                    type: integer
+    post:
+      summary: Export Cases
+      description: Trigger background CSV/Parquet export of filtered review cases.
+      operationId: exportCases
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                from_date:
+                  type: string
+                  format: date-time
+                to_date:
+                  type: string
+                  format: date-time
+      responses:
+        '202':
+          description: Export task initiated.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [task_id, status]
+                properties:
+                  task_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+
+  /cases/{case_id}:
+    get:
+      summary: Get Case Detail
+      description: Retrieve complete case context including decision record, transaction attributes, rule explain list, and case history.
+      operationId: getCaseDetail
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Comprehensive case detail object.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseDetail'
+        '404':
+          description: Case not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /cases/{case_id}/assign:
+    post:
+      summary: Assign Case
+      description: Assign a case to an analyst.
+      operationId: assignCase
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [analyst_id]
+              properties:
+                analyst_id:
+                  type: string
+      responses:
+        '200':
+          description: Case successfully assigned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseSummary'
+
+  /cases/{case_id}/disposition:
+    post:
+      summary: Resolve Case Disposition
+      description: Record analyst triage verdict (APPROVE / DECLINE), notes, and close the case.
+      operationId: resolveCaseDisposition
+      parameters:
+        - name: case_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [verdict, notes]
+              properties:
+                verdict:
+                  type: string
+                  enum: [APPROVE, DECLINE]
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Case successfully resolved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseSummary'
+
+  # ============================================================================
+  # Rulesets, Simulation & Maker-Checker Workflows
+  # ============================================================================
+  /rulesets:
+    get:
+      summary: List Rulesets
+      description: Retrieve all active and draft rulesets for the tenant.
+      operationId: listRulesets
+      responses:
+        '200':
+          description: Array of ruleset descriptors.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RulesetHeader'
+    post:
+      summary: Create Draft Ruleset
+      description: Author a new ruleset container.
+      operationId: createRuleset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ruleset_id, name]
+              properties:
+                ruleset_id:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Ruleset created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesetHeader'
+
+  /rulesets/simulate:
+    post:
+      summary: Simulate Draft Ruleset
+      description: Execute in-memory simulation of candidate CEL rules against synthetic or test events without persisting state.
+      operationId: simulateRuleset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dsl_content, sample_events]
+              properties:
+                dsl_content:
+                  type: string
+                sample_events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/TransactionEvent'
+      responses:
+        '200':
+          description: Simulation results with score distribution and rule firing traces.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulationResult'
+
+  /rulesets/pending-approvals:
+    get:
+      summary: List Pending Rule Approvals
+      description: Retrieve draft rulesets submitted for maker-checker peer review.
+      operationId: listPendingApprovals
+      responses:
+        '200':
+          description: Pending approvals list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PendingApproval'
+
+  /rulesets/{ruleset_id}:
+    get:
+      summary: Get Ruleset Detail
+      description: Fetch ruleset metadata and current active version specification.
+      operationId: getRuleset
+      parameters:
+        - name: ruleset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ruleset metadata and active version details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesetDetail'
+
+  /rulesets/{ruleset_id}/versions:
+    get:
+      summary: List Ruleset Version History
+      description: Retrieve immutable cryptographic version history for a ruleset.
+      operationId: listRulesetVersions
+      parameters:
+        - name: ruleset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Version history.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RulesetVersion'
+
+  /rulesets/{ruleset_id}/rules:
+    post:
+      summary: Add Rule to Ruleset Draft
+      description: Submit a new CEL rule expression into the draft version.
+      operationId: addRuleToDraft
+      parameters:
+        - name: ruleset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleDefinition'
+      responses:
+        '200':
+          description: Rule added and draft AST compiled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesetVersion'
+
+  /rulesets/{ruleset_id}/rules/{rule_id}:
+    put:
+      summary: Update Rule in Ruleset Draft
+      description: Modify an existing rule condition or parameters in the draft version.
+      operationId: updateRuleInDraft
+      parameters:
+        - name: ruleset_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: rule_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleDefinition'
+      responses:
+        '200':
+          description: Rule updated in draft.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesetVersion'
+
+  /rulesets/{ruleset_id}/approve:
+    post:
+      summary: Approve Ruleset Version
+      description: Dual-custody maker-checker approval. Checker cannot be the author who submitted the draft.
+      operationId: approveRulesetVersion
+      parameters:
+        - name: ruleset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version_hash]
+              properties:
+                version_hash:
+                  type: string
+                comment:
+                  type: string
+      responses:
+        '200':
+          description: Version approved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesetVersion'
+
+  /rulesets/{ruleset_id}/reject:
+    post:
+      summary: Reject Ruleset Version
+      description: Reject a submitted ruleset draft back to draft state.
+      operationId: rejectRulesetVersion
+      parameters:
+        - name: ruleset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version_hash, reason]
+              properties:
+                version_hash:
+                  type: string
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Version rejected.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesetVersion'
+
+  /rulesets/{ruleset_id}/promote:
+    post:
+      summary: Promote Ruleset to Canary or Live
+      description: Promote an approved ruleset version to canary traffic or 100% live execution.
+      operationId: promoteRulesetVersion
+      parameters:
+        - name: ruleset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [version_hash, target_state]
+              properties:
+                version_hash:
+                  type: string
+                target_state:
+                  type: string
+                  enum: [SHADOW, CANARY, LIVE]
+                canary_percentage:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+      responses:
+        '200':
+          description: Ruleset version promoted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesetVersion'
+
+  /rulesets/{ruleset_id}/rollback:
+    post:
+      summary: Instant Rollback Ruleset
+      description: Immediately revert production traffic to the preceding verified ruleset version.
+      operationId: rollbackRuleset
+      parameters:
+        - name: ruleset_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Rollback completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RulesetVersion'
+
+  # ============================================================================
+  # Replay Engine & Backtesting
+  # ============================================================================
+  /replay/runs:
+    get:
+      summary: List Replay Runs
+      description: Retrieve history of executed and in-flight historical replay jobs.
+      operationId: listReplayRuns
+      responses:
+        '200':
+          description: Replay run summaries.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReplayRunSummary'
+    post:
+      summary: Trigger Replay Run
+      description: Initiate historical replay benchmarking a candidate ruleset against past transaction datasets.
+      operationId: triggerReplayRun
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [dataset_source, candidate_version_hash]
+              properties:
+                dataset_source:
+                  type: string
+                dataset_import_id:
+                  type: string
+                  format: uuid
+                baseline_version_hash:
+                  type: string
+                candidate_version_hash:
+                  type: string
+      responses:
+        '202':
+          description: Replay job accepted and running.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplayRunSummary'
+
+  /replay/runs/{run_id}/status:
+    get:
+      summary: Get Replay Progress
+      description: Poll progress and throughput metrics of an executing replay job.
+      operationId: getReplayStatus
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Replay job progress and status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplayRunSummary'
+
+  /replay/runs/{run_id}/report:
+    get:
+      summary: Get Replay Comparison Report
+      description: Fetch decision shift matrix, false positive differentials, and p50/p95/p99 latency analysis.
+      operationId: getReplayReport
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detailed replay analytical report.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplayReport'
+
+  /replay/runs/{run_id}/diff.csv:
+    get:
+      summary: Download Replay Decision Diffs CSV
+      description: Export raw row-by-row decision shifts between baseline and candidate rulesets.
+      operationId: downloadReplayDiffCsv
+      parameters:
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: CSV stream of changed verdicts.
+          content:
+            text/csv:
+              schema:
+                type: string
+
+  # ============================================================================
+  # Dataset Import & Free Backtest Wedge
+  # ============================================================================
+  /datasets/import:
+    post:
+      summary: Initiate Dataset Import
+      description: Request presigned S3 upload URL and register dataset import job for historical backtesting.
+      operationId: initiateDatasetImport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [filename, file_format]
+              properties:
+                filename:
+                  type: string
+                file_format:
+                  type: string
+                  enum: [CSV, PARQUET]
+                expected_rows:
+                  type: integer
+      responses:
+        '201':
+          description: Import registered and presigned S3 upload URL returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [import_id, upload_url, s3_key, expires_at]
+                properties:
+                  import_id:
+                    type: string
+                    format: uuid
+                  upload_url:
+                    type: string
+                  s3_key:
+                    type: string
+                  expires_at:
+                    type: string
+                    format: date-time
+
+  /datasets/import/{import_id}/status:
+    get:
+      summary: Get Dataset Import Status
+      description: Poll status of schema parsing, header mapping, and PAN pattern scanning on an uploaded dataset.
+      operationId: getDatasetImportStatus
+      parameters:
+        - name: import_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Dataset import status and validation summary.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetImportStatus'
+
+  /datasets/{import_id}/backtest-report:
+    get:
+      summary: Get Backtest Executive Summary
+      description: Retrieve executive comparison metrics demonstrating fraud catch improvements and latency profile.
+      operationId: getBacktestReport
+      parameters:
+        - name: import_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Executive backtest report.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BacktestReport'
+
+  /datasets/{import_id}/export-pdf:
+    post:
+      summary: Export Backtest PDF
+      description: Generate formatted PDF executive report for prospective customer stakeholders.
+      operationId: exportBacktestPdf
+      parameters:
+        - name: import_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Binary PDF report.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  # ============================================================================
+  # Cryptographic Audit Ledger & Sealing
+  # ============================================================================
+  /audit/ledger:
+    get:
+      summary: Query Audit Ledger
+      description: Read tamper-evident audit records and sealed Merkle batch roots.
+      operationId: queryAuditLedger
+      parameters:
+        - name: stream
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [MANAGEMENT_EVENTS, DECISION_BATCHES]
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Audit ledger events.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditBatchHeader'
+
+  /audit/batches/{batch_id}/seal:
+    get:
+      summary: Inspect Merkle Batch Seal
+      description: Retrieve Merkle root, leaf hashes, and chain hash proof for a decision batch.
+      operationId: inspectBatchSeal
+      parameters:
+        - name: batch_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Merkle seal verification details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditBatchSealDetail'
+
+  /audit/verify:
+    post:
+      summary: Verify Audit Chain
+      description: Validate cryptographic hash continuity from genesis to current head hash.
+      operationId: verifyAuditChain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [stream_name]
+              properties:
+                stream_name:
+                  type: string
+                  enum: [MANAGEMENT_EVENTS, DECISION_BATCHES]
+      responses:
+        '200':
+          description: Verification outcome.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [valid, head_hash, verified_records]
+                properties:
+                  valid:
+                    type: boolean
+                  head_hash:
+                    type: string
+                  verified_records:
+                    type: integer
+
+  # ============================================================================
+  # Tenant Administration & API Keys
+  # ============================================================================
+  /tenant/members:
+    get:
+      summary: List Tenant Members
+      description: Retrieve team members and their canonical application roles.
+      operationId: listTenantMembers
+      responses:
+        '200':
+          description: Tenant member array.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TenantUser'
+
+  /tenant/invites:
+    post:
+      summary: Invite Team Member
+      description: Dispatch single-use onboarding invitation token to a new team member.
+      operationId: inviteTenantMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, role]
+              properties:
+                email:
+                  type: string
+                  format: email
+                role:
+                  type: string
+                  enum: [owner, admin, risk_manager, rule_author, risk_analyst, auditor, developer]
+      responses:
+        '201':
+          description: Member invitation created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [invite_id, email, status]
+                properties:
+                  invite_id:
+                    type: string
+                    format: uuid
+                  email:
+                    type: string
+                  status:
+                    type: string
+
+  /tenant/keys:
+    get:
+      summary: List API Keys
+      description: View provisioned API keys (masked) and active rate limits.
+      operationId: listApiKeys
+      responses:
+        '200':
+          description: List of API keys.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiKeySummary'
+    post:
+      summary: Provision API Key
+      description: Generate new API key and secret pair. Secret is displayed only once.
+      operationId: createApiKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, scopes]
+              properties:
+                name:
+                  type: string
+                scopes:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: API key generated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyCreated'
+
+  /tenant/keys/{key_id}:
+    delete:
+      summary: Revoke API Key
+      description: Immediately deactivate and revoke an API key.
+      operationId: revokeApiKey
+      parameters:
+        - name: key_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: API key permanently revoked.
+
+  # ============================================================================
+  # Authentication, Identity & Password Lifecycle
+  # ============================================================================
+  /auth/login:
+    post:
+      summary: Authenticate User
+      description: Validate email/mobile and password, returning JWT access token or MFA challenge token.
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier, password]
+              properties:
+                identifier:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Authentication successful or MFA required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/totp/challenge:
+    post:
+      summary: Verify TOTP MFA Challenge
+      description: Submit 6-digit TOTP code to complete session establishment.
+      operationId: verifyTotpChallenge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mfa_token, totp_code]
+              properties:
+                mfa_token:
+                  type: string
+                totp_code:
+                  type: string
+      responses:
+        '200':
+          description: Session established with JWT and refresh token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        '401':
+          description: Invalid or expired TOTP code.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/totp/setup:
+    post:
+      summary: Setup TOTP Enrollment
+      description: Generate RFC 6238 Base32 secret and QR URI during mandatory onboarding.
+      operationId: setupTotp
+      responses:
+        '200':
+          description: TOTP secret and setup URI.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [secret_key, otpauth_uri]
+                properties:
+                  secret_key:
+                    type: string
+                  otpauth_uri:
+                    type: string
+
+  /auth/totp/verify:
+    post:
+      summary: Verify TOTP Setup
+      description: Confirm initial 6-digit code to activate user TOTP MFA.
+      operationId: confirmTotpSetup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [totp_code]
+              properties:
+                totp_code:
+                  type: string
+      responses:
+        '200':
+          description: TOTP successfully enabled.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+
+  /auth/refresh:
+    post:
+      summary: Rotate Refresh Token
+      description: Exchange valid rotating refresh token cookie for fresh 15-minute access JWT.
+      operationId: refreshToken
+      responses:
+        '200':
+          description: Refreshed access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+        '401':
+          description: Invalid or revoked refresh token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      summary: Logout Session
+      description: Revoke active session in database and clear refresh cookie.
+      operationId: logout
+      responses:
+        '204':
+          description: Successfully logged out.
+
+  /auth/me:
+    get:
+      summary: Current User Profile
+      description: Fetch claims, permissions, and active tenant profile for authenticated user.
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: User profile and permissions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantUser'
+
+  /auth/invite/verify:
+    get:
+      summary: Verify Invitation Token
+      description: Check validity of single-use invitation URL token.
+      operationId: verifyInvite
+      security: []
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invitation token valid.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [valid, email, role, tenant_name]
+                properties:
+                  valid:
+                    type: boolean
+                  email:
+                    type: string
+                  role:
+                    type: string
+                  tenant_name:
+                    type: string
+
+  /auth/invite/accept:
+    post:
+      summary: Accept Invitation & Create Account
+      description: Complete onboarding using invitation token, password, and initial MFA secret.
+      operationId: acceptInvite
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, full_name, mobile, password, totp_code]
+              properties:
+                token:
+                  type: string
+                full_name:
+                  type: string
+                mobile:
+                  type: string
+                password:
+                  type: string
+                totp_code:
+                  type: string
+      responses:
+        '200':
+          description: Account created and session established.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccess'
+
+  /auth/password/forgot:
+    post:
+      summary: Initiate Password Reset
+      description: Request mobile/email OTP dispatch for forgotten password. Timing-equalized generic response.
+      operationId: forgotPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier]
+              properties:
+                identifier:
+                  type: string
+      responses:
+        '200':
+          description: Generic confirmation message.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message]
+                properties:
+                  message:
+                    type: string
+
+  /auth/password/reset:
+    post:
+      summary: Complete Password Reset
+      description: Submit OTP code and new Argon2id password to reset credentials and invalidate existing sessions.
+      operationId: resetPassword
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [identifier, otp_code, new_password]
+              properties:
+                identifier:
+                  type: string
+                otp_code:
+                  type: string
+                new_password:
+                  type: string
+      responses:
+        '200':
+          description: Password successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+
+  /auth/signup/initiate:
+    post:
+      summary: Initiate Tenant Owner Signup
+      description: Register organization owner and trigger mobile OTP verification.
+      operationId: initiateSignup
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [organization_name, owner_name, email, mobile, password]
+              properties:
+                organization_name:
+                  type: string
+                owner_name:
+                  type: string
+                email:
+                  type: string
+                mobile:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Signup initiated and challenge generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [challenge_id, resend_cooldown_seconds]
+                properties:
+                  challenge_id:
+                    type: string
+                  resend_cooldown_seconds:
+                    type: integer
+
+  /auth/signup/verify-otp:
+    post:
+      summary: Verify Signup OTP
+      description: Complete tenant owner verification and receive initial setup token.
+      operationId: verifySignupOtp
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [challenge_id, otp_code]
+              properties:
+                challenge_id:
+                  type: string
+                otp_code:
+                  type: string
+      responses:
+        '200':
+          description: Tenant created and MFA setup required.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [setup_token, state]
+                properties:
+                  setup_token:
+                    type: string
+                  state:
+                    type: string
+
+# ==============================================================================
+# Components & Data Models
+# ==============================================================================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access JWT issued upon login.
+    ApiKeyHmac:
+      type: apiKey
+      in: header
+      name: X-Aegis-Api-Key
+      description: Header API key for HMAC-signed server-to-server requests.
+
+  schemas:
+    TransactionEvent:
+      type: object
+      required:
+        - event_id
+        - event_time
+        - sequence_number
+        - tenant_id
+        - amount_minor_units
+        - currency
+        - payment_method
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        event_time:
+          type: string
+          format: date-time
+        sequence_number:
+          type: integer
+          default: 0
+        tenant_id:
+          type: string
+          format: uuid
+        account_id_hash:
+          type: string
+        card_token:
+          type: string
+        amount_minor_units:
+          type: integer
+        currency:
+          type: string
+          example: INR
+        payment_method:
+          type: string
+          enum: [UPI, CARD, NETBANKING, WALLET, BNPL, EMI, NACH]
+        merchant_id:
+          type: string
+        merchant_category_code:
+          type: string
+        merchant_name:
+          type: string
+        channel:
+          type: string
+          enum: [WEB, MOBILE_APP, POS, API]
+        ip_address:
+          type: string
+        device_id:
+          type: string
+        user_agent:
+          type: string
+        upi_vpa_hash:
+          type: string
+        custom_fields:
+          type: object
+          additionalProperties:
+            type: string
+
+    DecisionResponse:
+      type: object
+      required:
+        - decision_id
+        - event_id
+        - outcome
+        - score
+        - hard_rule_fired
+        - ruleset_id
+        - ruleset_version_hash
+        - rules_fired
+        - latency_ms
+        - timestamp
+      properties:
+        decision_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+        outcome:
+          type: string
+          enum: [APPROVE, DECLINE, REVIEW]
+        score:
+          type: number
+          minimum: 0.0
+          maximum: 100.0
+        hard_rule_fired:
+          type: boolean
+        ruleset_id:
+          type: string
+        ruleset_version_hash:
+          type: string
+        rules_fired:
+          type: array
+          items:
+            $ref: '#/components/schemas/FiredRuleSummary'
+        degraded:
+          type: boolean
+          default: false
+        degraded_reason:
+          type: string
+        latency_ms:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+
+    DecisionDetail:
+      allOf:
+        - $ref: '#/components/schemas/DecisionResponse'
+        - type: object
+          properties:
+            features_snapshot:
+              type: object
+            sealed:
+              type: boolean
+            batch_id:
+              type: string
+              format: uuid
+
+    FiredRuleSummary:
+      type: object
+      required:
+        - rule_id
+        - name
+        - score_impact
+        - reason_code
+      properties:
+        rule_id:
+          type: string
+        name:
+          type: string
+        score_impact:
+          type: number
+        reason_code:
+          type: string
+
+    CaseSummary:
+      type: object
+      required:
+        - case_id
+        - tenant_id
+        - decision_id
+        - status
+        - priority
+        - created_at
+      properties:
+        case_id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        decision_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [OPEN, ASSIGNED, RESOLVED, CLOSED]
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        assigned_to:
+          type: string
+        score:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+
+    CaseDetail:
+      allOf:
+        - $ref: '#/components/schemas/CaseSummary'
+        - type: object
+          properties:
+            decision:
+              $ref: '#/components/schemas/DecisionDetail'
+            events:
+              type: array
+              items:
+                $ref: '#/components/schemas/CaseEvent'
+
+    CaseEvent:
+      type: object
+      required:
+        - event_id
+        - actor_id
+        - actor_role
+        - action
+        - created_at
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        actor_id:
+          type: string
+        actor_role:
+          type: string
+        action:
+          type: string
+        notes:
+          type: string
+        previous_status:
+          type: string
+        new_status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    RulesetHeader:
+      type: object
+      required: [ruleset_id, name, active_version_hash]
+      properties:
+        ruleset_id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        active_version_hash:
+          type: string
+
+    RulesetDetail:
+      allOf:
+        - $ref: '#/components/schemas/RulesetHeader'
+        - type: object
+          properties:
+            active_version:
+              $ref: '#/components/schemas/RulesetVersion'
+
+    RulesetVersion:
+      type: object
+      required: [version_hash, ruleset_id, version_number, lifecycle_state, dsl_content]
+      properties:
+        version_hash:
+          type: string
+        ruleset_id:
+          type: string
+        version_number:
+          type: integer
+        lifecycle_state:
+          type: string
+          enum: [DRAFT, SIMULATED, SUBMITTED, APPROVED, SHADOW, CANARY, LIVE, REVERTED]
+        canary_percentage:
+          type: integer
+        author_id:
+          type: string
+        approver_id:
+          type: string
+        dsl_content:
+          type: string
+        ast_summary:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+
+    RuleDefinition:
+      type: object
+      required: [rule_id, name, condition_cel, action]
+      properties:
+        rule_id:
+          type: string
+        name:
+          type: string
+        condition_cel:
+          type: string
+        action:
+          type: string
+          enum: [SCORE_WEIGHT, HARD_DECLINE, HARD_APPROVE, FORCE_REVIEW]
+        weight:
+          type: number
+        reason_code:
+          type: string
+
+    PendingApproval:
+      type: object
+      required: [ruleset_id, version_hash, author_id, submitted_at]
+      properties:
+        ruleset_id:
+          type: string
+        version_hash:
+          type: string
+        author_id:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+        diff_summary:
+          type: string
+
+    SimulationResult:
+      type: object
+      required: [events_evaluated, outcome_distribution, rule_match_counts]
+      properties:
+        events_evaluated:
+          type: integer
+        outcome_distribution:
+          type: object
+        rule_match_counts:
+          type: object
+
+    ReplayRunSummary:
+      type: object
+      required: [run_id, status, events_total, events_processed]
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [QUEUED, RUNNING, COMPLETED, FAILED]
+        events_total:
+          type: integer
+        events_processed:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    ReplayReport:
+      type: object
+      required: [run_id, decision_shifts, metrics_comparison]
+      properties:
+        run_id:
+          type: string
+          format: uuid
+        decision_shifts:
+          type: object
+        metrics_comparison:
+          type: object
+        latency_p50_ms:
+          type: number
+        latency_p99_ms:
+          type: number
+
+    DatasetImportStatus:
+      type: object
+      required: [import_id, status, rows_parsed, rows_rejected]
+      properties:
+        import_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [UPLOADING, VALIDATING, READY, REJECTED, PURGED]
+        rows_parsed:
+          type: integer
+        rows_rejected:
+          type: integer
+        validation_error:
+          type: string
+
+    BacktestReport:
+      type: object
+      required: [import_id, fraud_detected, false_positive_reduction_percent]
+      properties:
+        import_id:
+          type: string
+          format: uuid
+        fraud_detected:
+          type: integer
+        false_positive_reduction_percent:
+          type: number
+        latency_summary:
+          type: object
+
+    AuditBatchHeader:
+      type: object
+      required: [batch_id, merkle_root, batch_chain_hash, sealed_at]
+      properties:
+        batch_id:
+          type: string
+          format: uuid
+        merkle_root:
+          type: string
+        batch_chain_hash:
+          type: string
+        batch_size:
+          type: integer
+        sealed_at:
+          type: string
+          format: date-time
+
+    AuditBatchSealDetail:
+      allOf:
+        - $ref: '#/components/schemas/AuditBatchHeader'
+        - type: object
+          properties:
+            previous_batch_chain_hash:
+              type: string
+            s3_anchor_uri:
+              type: string
+
+    TenantUser:
+      type: object
+      required: [user_id, email, full_name, role, status]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        mobile:
+          type: string
+        full_name:
+          type: string
+        role:
+          type: string
+          enum: [owner, admin, risk_manager, rule_author, risk_analyst, auditor, developer]
+        status:
+          type: string
+          enum: [PENDING_ONBOARDING, ACTIVE, LOCKED, DEACTIVATED]
+        totp_enabled:
+          type: boolean
+
+    ApiKeySummary:
+      type: object
+      required: [key_id, name, prefix, created_at]
+      properties:
+        key_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        prefix:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+
+    ApiKeyCreated:
+      allOf:
+        - $ref: '#/components/schemas/ApiKeySummary'
+        - type: object
+          required: [secret_key]
+          properties:
+            secret_key:
+              type: string
+
+    LoginResponse:
+      type: object
+      required: [mfa_required]
+      properties:
+        mfa_required:
+          type: boolean
+        mfa_token:
+          type: string
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+
+    AuthSuccess:
+      type: object
+      required: [access_token, token_type, expires_in, user]
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          default: Bearer
+        expires_in:
+          type: integer
+        user:
+          $ref: '#/components/schemas/TenantUser'
+
+    ErrorResponse:
+      type: object
+      required:
+        - type
+        - title
+        - status
+        - detail
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        invalid_params:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              reason:
+                type: string

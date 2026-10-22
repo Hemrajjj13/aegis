@@ -34,7 +34,7 @@ CREATE SCHEMA IF NOT EXISTS aegis_auth;
 -- 1. Users Table
 CREATE TABLE aegis_auth.users (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    tenant_id UUID NOT NULL REFERENCES tenants(tenant_id) ON DELETE CASCADE,
     email VARCHAR(255) NOT NULL,
     mobile VARCHAR(32) NOT NULL,
     full_name VARCHAR(128) NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE aegis_auth.user_totp_secrets (
 -- 4. User Invites Table
 CREATE TABLE aegis_auth.user_invites (
     invite_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    tenant_id UUID NOT NULL REFERENCES tenants(tenant_id) ON DELETE CASCADE,
     email VARCHAR(255) NOT NULL,
     role VARCHAR(32) NOT NULL,
     invited_by_user_id UUID NOT NULL REFERENCES aegis_auth.users(user_id),
@@ -83,7 +83,7 @@ CREATE TABLE aegis_auth.user_invites (
 -- 5. Verification OTPs Table (Mobile Onboarding & Password Reset)
 CREATE TABLE aegis_auth.auth_otp_codes (
     otp_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+    tenant_id UUID REFERENCES tenants(tenant_id) ON DELETE CASCADE,
     recipient_identifier VARCHAR(255) NOT NULL, -- Normalized E.164 phone or lowercase email
     otp_purpose VARCHAR(32) NOT NULL, -- 'SIGNUP_MOBILE_VERIFY', 'PASSWORD_RESET_MOBILE', 'PASSWORD_RESET_EMAIL'
     otp_hash VARCHAR(64) NOT NULL, -- SHA-256 hash of 6-digit numeric code
@@ -98,7 +98,7 @@ CREATE TABLE aegis_auth.auth_otp_codes (
 CREATE TABLE aegis_auth.user_sessions (
     session_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES aegis_auth.users(user_id) ON DELETE CASCADE,
-    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    tenant_id UUID NOT NULL REFERENCES tenants(tenant_id) ON DELETE CASCADE,
     refresh_token_hash VARCHAR(64) NOT NULL UNIQUE, -- SHA-256 hash of opaque rotating refresh token
     ip_address INET NOT NULL,
     user_agent TEXT NOT NULL,

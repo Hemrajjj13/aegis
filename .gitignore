@@ -1,3 +1,5 @@
 # Temporary scratch files
 scratch/
 *.tmp
+node_modules/
+tools/extracted_schema.sql

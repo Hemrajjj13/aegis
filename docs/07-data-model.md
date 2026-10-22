@@ -183,6 +183,54 @@ CREATE TABLE outbox (
 CREATE INDEX idx_outbox_unprocessed ON outbox (id ASC) WHERE published_at IS NULL;
 ```
 
+### 3.5 `cases`
+
+Operational table backing the Risk Analyst review queue (ADR-0009). When an evaluation returns `REVIEW`, a case record is generated or linked to the decision.
+
+```sql
+CREATE TABLE cases (
+    case_id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id               UUID NOT NULL REFERENCES tenants(tenant_id),
+    decision_id             UUID NOT NULL,
+    decision_created_at     TIMESTAMPTZ NOT NULL,
+    status                  VARCHAR(32) NOT NULL DEFAULT 'OPEN', -- OPEN, ASSIGNED, RESOLVED, CLOSED
+    priority                VARCHAR(16) NOT NULL DEFAULT 'MEDIUM', -- LOW, MEDIUM, HIGH, CRITICAL
+    assigned_to             VARCHAR(128),                          -- User ID or email of analyst
+    assigned_at             TIMESTAMPTZ,
+    resolved_at             TIMESTAMPTZ,
+    resolution              VARCHAR(32),                           -- CONFIRMED_FRAUD, FALSE_POSITIVE, ESCALATED, EXPIRED
+    resolution_notes        TEXT,
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+    updated_at              TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+    CONSTRAINT uq_cases_tenant_decision UNIQUE (tenant_id, decision_id),
+    FOREIGN KEY (tenant_id, decision_created_at, decision_id) REFERENCES decisions(tenant_id, created_at, decision_id) ON DELETE RESTRICT
+);
+
+CREATE INDEX idx_cases_tenant_status ON cases (tenant_id, status, created_at DESC);
+CREATE INDEX idx_cases_tenant_assignee ON cases (tenant_id, assigned_to) WHERE status IN ('OPEN', 'ASSIGNED');
+```
+
+### 3.6 `case_events`
+
+Immutable chronological audit log of all case workflow transitions, analyst assignments, comments, and resolution actions (ADR-0009).
+
+```sql
+CREATE TABLE case_events (
+    event_id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id               UUID NOT NULL REFERENCES tenants(tenant_id),
+    case_id                 UUID NOT NULL REFERENCES cases(case_id) ON DELETE CASCADE,
+    actor_id                VARCHAR(128) NOT NULL,
+    actor_role              VARCHAR(64) NOT NULL,
+    action                  VARCHAR(32) NOT NULL, -- CREATED, ASSIGNED, COMMENTED, RESOLVED, REOPENED
+    notes                   TEXT,
+    metadata                JSONB,                -- Captured transition metadata or diff
+    created_at              TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp()
+);
+
+CREATE INDEX idx_case_events_case ON case_events (tenant_id, case_id, created_at ASC);
+```
+
+
 ---
 
 ## 4. Audit and Cryptographic Integrity Tables
@@ -455,6 +503,18 @@ ALTER TABLE replay_decisions FORCE ROW LEVEL SECURITY;
 ALTER TABLE dataset_imports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE dataset_imports FORCE ROW LEVEL SECURITY;
 
+ALTER TABLE audit_chain_heads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_chain_heads FORCE ROW LEVEL SECURITY;
+
+ALTER TABLE maker_checker_audit ENABLE ROW LEVEL SECURITY;
+ALTER TABLE maker_checker_audit FORCE ROW LEVEL SECURITY;
+
+ALTER TABLE cases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cases FORCE ROW LEVEL SECURITY;
+
+ALTER TABLE case_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE case_events FORCE ROW LEVEL SECURITY;
+
 -- Standard tenant isolation policy
 CREATE POLICY tenant_isolation_processed_events ON processed_events
     USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
@@ -484,6 +544,18 @@ CREATE POLICY tenant_isolation_replay_decisions ON replay_decisions
     USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
 
 CREATE POLICY tenant_isolation_dataset_imports ON dataset_imports
+    USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
+
+CREATE POLICY tenant_isolation_audit_chain_heads ON audit_chain_heads
+    USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
+
+CREATE POLICY tenant_isolation_maker_checker ON maker_checker_audit
+    USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
+
+CREATE POLICY tenant_isolation_cases ON cases
+    USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
+
+CREATE POLICY tenant_isolation_case_events ON case_events
     USING (tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid);
 ```
 

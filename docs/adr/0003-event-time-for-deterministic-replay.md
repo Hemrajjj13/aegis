@@ -61,7 +61,7 @@ Event time is the only option that achieves determinism.
 3. **The evaluation core must use a clock that is provided to it, not
    `System.currentTimeMillis()`.** In production, the provided clock is
    `event_time`. In replay, the provided clock is also `event_time` from
-   the historical record. This is a `Clock` parameter injected into the
+   the historical record. This is an `EventClock` parameter (`com.aegis.core.EventClock`) injected into the
    evaluation core. No `Clock.systemUTC()` call appears inside the
    evaluation logic itself.
 
@@ -111,7 +111,7 @@ Decision [DR-API-04](file:///c:/dev/aegis/docs/00-decisions/decision-register.md
 feature computation and rule evaluation.**
 
 Concretely:
-- The evaluation core accepts a `Clock` parameter. In production this is
+- The evaluation core accepts an `EventClock` parameter (`com.aegis.core.EventClock`). In production this is
   set to the event's `event_time`. In test and replay it is set identically.
 - Velocity windows are computed as `event_time - window_size` to `event_time`.
 - No call to `System.currentTimeMillis()`, `LocalDateTime.now()`, or

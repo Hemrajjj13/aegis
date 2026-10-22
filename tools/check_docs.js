@@ -17,6 +17,7 @@
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const { spawnSync } = require('child_process');
 
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
 const DOCS_DIR = path.join(WORKSPACE_ROOT, 'docs');
@@ -391,6 +392,32 @@ function checkCanonicalGlossaryEnums() {
   return errors;
 }
 
+function checkOpenApiContract() {
+  const scriptPath = path.join(__dirname, 'check-openapi.mjs');
+  try {
+    const res = spawnSync(process.execPath, [scriptPath], { encoding: 'utf8' });
+    if (res.status !== 0) {
+      return [res.stderr || res.stdout || 'OpenAPI validation failed'];
+    }
+    return [];
+  } catch (e) {
+    return [`Error executing check-openapi.mjs: ${e.message}`];
+  }
+}
+
+function checkSqlDdl() {
+  const scriptPath = path.join(__dirname, 'check-sql.mjs');
+  try {
+    const res = spawnSync(process.execPath, [scriptPath], { encoding: 'utf8' });
+    if (res.status !== 0) {
+      return [res.stderr || res.stdout || 'SQL DDL validation failed'];
+    }
+    return [];
+  } catch (e) {
+    return [`Error executing check-sql.mjs: ${e.message}`];
+  }
+}
+
 function runAllChecks() {
   console.log('='.repeat(80));
   console.log('Project Aegis - Documentation & Architecture Audit (check_docs.js)');
@@ -436,6 +463,16 @@ function runAllChecks() {
   allErrors['Assumptions Register Gaps'] = errs;
   console.log(`  -> ${errs.length === 0 ? 'PASS' : `FAIL (${errs.length} rows lacking gate/owner/method)`}`);
 
+  console.log('Checking 8: OpenAPI 3.1 Schema Validation (/api/openapi.yaml)...');
+  errs = checkOpenApiContract();
+  allErrors['OpenAPI Contract Errors'] = errs;
+  console.log(`  -> ${errs.length === 0 ? 'PASS' : `FAIL (${errs.length} errors)`}`);
+
+  console.log('Checking 9: PostgreSQL DDL Extraction & Dependency Order Validation...');
+  errs = checkSqlDdl();
+  allErrors['SQL DDL Errors'] = errs;
+  console.log(`  -> ${errs.length === 0 ? 'PASS' : `FAIL (${errs.length} errors)`}`);
+
   console.log('\n' + '='.repeat(80));
   const totalFailures = Object.values(allErrors).reduce((acc, list) => acc + list.length, 0);
 
@@ -472,6 +509,8 @@ module.exports = {
   checkCompliancePhrasing,
   checkAssumptionsRegister,
   checkCanonicalGlossaryEnums,
+  checkOpenApiContract,
+  checkSqlDdl,
   runAllChecks,
   CANONICAL_ROLES,
   CANONICAL_OUTCOMES,

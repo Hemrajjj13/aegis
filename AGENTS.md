@@ -68,7 +68,7 @@ The following areas are designated as **Human-Review Zones**. An AI coding agent
 ### 3.2 Strict Determinism in `aegis-core`
 - The core decision engine must remain pure and 100% deterministic.
 - **Forbidden Calls:** Never call `System.currentTimeMillis()`, `Instant.now()`, `new Date()`, or `new Random()` within `aegis-core`.
-- **Mandatory Injection:** All temporal operations must resolve through the `com.aegis.core.Clock` SPI passed in the evaluation context.
+- **Mandatory Injection:** All temporal operations must resolve through the `com.aegis.core.EventClock` SPI passed in the evaluation context.
 
 ### 3.3 Zero PAN Invariant
 - Project Aegis never handles or stores Primary Account Numbers (PANs).
@@ -107,5 +107,5 @@ trade-offs, or references to relevant documentation sections]
 ### 4.2 Commit Examples
 - `feat(decision-api): implement POST /v1/decisions vertical slice [TSK-004]`
 - `test(velocity): add 50-thread concurrent limit bypass test [TSK-014]`
-- `fix(core): inject Clock SPI into CEL rule evaluation context [TSK-009]`
+- `fix(core): inject EventClock SPI into CEL rule evaluation context [TSK-009]`
 - `docs(gtm): outline design partner terms and bilateral DPA [TSK-046]`
