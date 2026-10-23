@@ -25,3 +25,11 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("io.zonky.test:embedded-postgres:2.0.7")
 }
+
+tasks.register<JavaExec>("dbTool") {
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.aegis.storage.dev.DevDatabaseTool")
+    if (project.hasProperty("toolArgs")) {
+        args = (project.property("toolArgs") as String).split(" ")
+    }
+}

@@ -18,6 +18,13 @@ $ErrorActionPreference = "Stop"
 $rootDir = (Resolve-Path "$PSScriptRoot\..").Path
 Set-Location $rootDir
 
+function Invoke-DevDbTool([string]$command, [int]$dbPort = 5432) {
+    $pgJar = (Get-ChildItem -Path "$env:USERPROFILE\.gradle\caches\modules-2\files-2.1\org.postgresql\postgresql" -Filter "postgresql-*.jar" -Recurse | Select-Object -First 1).FullName
+    $classesDir = "$rootDir\backend\aegis-storage\build\classes\java\main"
+    $cp = "$classesDir;$pgJar"
+    & java -cp "$cp" com.aegis.storage.dev.DevDatabaseTool $command $dbPort
+}
+
 Write-Host "================================================================================" -ForegroundColor Cyan
 Write-Host "  Project Aegis: Local Development Startup (Tier 0 without Docker)" -ForegroundColor Cyan
 Write-Host "================================================================================" -ForegroundColor Cyan
@@ -58,16 +65,16 @@ if (-not (Test-Path "$pgDataDir\PG_VERSION")) {
 
 # 3. Start PostgreSQL Server
 Write-Host "`n[3/6] Starting PostgreSQL server on port $Port..." -ForegroundColor Yellow
-$portOpen = (Test-NetConnection -ComputerName localhost -Port $Port -InformationLevel Quiet -WarningAction SilentlyContinue)
+$portOpen = (Test-NetConnection -ComputerName 127.0.0.1 -Port $Port -InformationLevel Quiet -WarningAction SilentlyContinue)
 
 if (-not $portOpen) {
-    $pgProc = Start-Process -FilePath "$binDir\postgres.exe" -ArgumentList "-D", "`"$pgDataDir`"", "-p", "$Port" -PassThru
+    $pgProc = Start-Process -FilePath "$binDir\postgres.exe" -ArgumentList "-D", "`"$pgDataDir`"", "-p", "$Port", "-h", "127.0.0.1" -PassThru
     $pgProc.Id | Out-File -FilePath "$rootDir\scratch\postgres.pid" -Encoding ascii
 
     $started = $false
     for ($i = 0; $i -lt 30; $i++) {
         Start-Sleep -Milliseconds 500
-        if (Test-NetConnection -ComputerName localhost -Port $Port -InformationLevel Quiet -WarningAction SilentlyContinue) {
+        if (Test-NetConnection -ComputerName 127.0.0.1 -Port $Port -InformationLevel Quiet -WarningAction SilentlyContinue) {
             $started = $true
             break
         }
@@ -80,32 +87,32 @@ if (-not $portOpen) {
     Write-Host "  PostgreSQL already responding on port $Port." -ForegroundColor Green
 }
 
-# 4. Provision aegis user and database
-Write-Host "`n[4/6] Provisioning 'aegis' database and role..." -ForegroundColor Yellow
-& "$binDir\psql.exe" -U postgres -p $Port -c "CREATE USER aegis WITH SUPERUSER PASSWORD 'aegis';" 2>$null | Out-Null
-& "$binDir\psql.exe" -U postgres -p $Port -c "CREATE DATABASE aegis OWNER aegis;" 2>$null | Out-Null
-& "$binDir\psql.exe" -U postgres -p $Port -c "GRANT ALL PRIVILEGES ON DATABASE aegis TO aegis;" 2>$null | Out-Null
-Write-Host "  Database 'aegis' ready." -ForegroundColor Green
-
-# 5. Build and Run App (which applies Flyway migrations V1 to V4 automatically)
-if ($NoApp) {
-    Write-Host "`n[dev-up] -NoApp flag provided. Skipping application launch." -ForegroundColor Yellow
-    return
-}
-
-Write-Host "`n[5/6] Building backend application JAR..." -ForegroundColor Yellow
+# 4. Build application JAR (compiles all modules including DevDatabaseTool)
+Write-Host "`n[4/6] Building backend application JAR..." -ForegroundColor Yellow
 & ".\backend\gradlew.bat" -p ".\backend" :aegis-app:bootJar -x test | Out-Null
 
-$jarPath = (Get-ChildItem -Path "backend\aegis-app\build\libs\*.jar" | Select-Object -First 1).FullName
+$jarPath = (Get-ChildItem -Path "backend\aegis-app\build\libs\*.jar" | Where-Object { $_.Name -notmatch "-plain\.jar$" } | Select-Object -First 1).FullName
 if (-not $jarPath) {
     throw "Could not locate compiled aegis-app JAR in backend\aegis-app\build\libs."
 }
 Write-Host "  JAR built: $jarPath" -ForegroundColor Green
 
+# 5. Provision aegis database and role via DevDatabaseTool
+Write-Host "`n[5/6] Provisioning 'aegis' database and role..." -ForegroundColor Yellow
+Invoke-DevDbTool "provision" $Port
+Write-Host "  Database 'aegis' ready." -ForegroundColor Green
+
+if ($NoApp) {
+    Write-Host "`n[dev-up] -NoApp flag provided. Skipping application launch." -ForegroundColor Yellow
+    return
+}
+
+# 6. Launch Project Aegis under 'tier0' profile
 Write-Host "`n[6/6] Launching Project Aegis under 'tier0' profile..." -ForegroundColor Yellow
 $appLog = "$rootDir\scratch\app.log"
+$appErr = "$rootDir\scratch\app.err"
 $appProc = Start-Process -FilePath "java" -ArgumentList "-jar", "`"$jarPath`"", "--spring.profiles.active=tier0" `
-    -RedirectStandardOutput $appLog -RedirectStandardError $appLog -PassThru
+    -RedirectStandardOutput $appLog -RedirectStandardError $appErr -PassThru
 $appProc.Id | Out-File -FilePath "$rootDir\scratch\app.pid" -Encoding ascii
 
 Write-Host "  Waiting for Aegis API on port 8080..." -ForegroundColor Gray
@@ -113,7 +120,7 @@ $appReady = $false
 for ($i = 0; $i -lt 40; $i++) {
     Start-Sleep -Milliseconds 1000
     try {
-        $resp = Invoke-WebRequest -Uri "http://localhost:8080/v1/decisions" -Method Post `
+        $resp = Invoke-WebRequest -Uri "http://127.0.0.1:8080/v1/decisions" -Method Post `
             -Headers @{ "X-Tenant-Id" = "00000000-0000-0000-0000-000000000001" } `
             -ContentType "application/json" -Body "{}" -ErrorAction SilentlyContinue
         if ($resp.StatusCode -eq 400 -or $resp.StatusCode -eq 200) {
@@ -133,7 +140,7 @@ if (-not $appReady) {
 }
 
 # Seed fixed dev tenant: 00000000-0000-0000-0000-000000000001
-& "$binDir\psql.exe" -U postgres -d aegis -p $Port -c "INSERT INTO tenants (tenant_id, name, slug, status, tier, config) VALUES ('00000000-0000-0000-0000-000000000001', 'Local Dev Tenant', 'dev_tenant', 'ACTIVE', 'TIER_0', '{}') ON CONFLICT (tenant_id) DO NOTHING;" 2>$null | Out-Null
+Invoke-DevDbTool "seed-tenant" $Port
 
 Write-Host "`n================================================================================" -ForegroundColor Green
 Write-Host "  Project Aegis is LIVE!" -ForegroundColor Green
