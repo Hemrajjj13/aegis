@@ -23,8 +23,10 @@ class FlywayMigrationIntegrationTest extends PostgresIntegrationTest {
         Flyway flyway = Flyway.configure()
                 .dataSource(jdbcUrl, username, password)
                 .locations("classpath:db/migration")
+                .cleanDisabled(false)
                 .load();
 
+        flyway.clean();
         var result = flyway.migrate();
         assertThat(result.success).isTrue();
         assertThat(result.migrationsExecuted).isGreaterThanOrEqualTo(3);

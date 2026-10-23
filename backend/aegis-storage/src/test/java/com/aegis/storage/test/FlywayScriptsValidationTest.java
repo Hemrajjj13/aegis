@@ -1,67 +1,72 @@
 package com.aegis.storage.test;
 
+import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class FlywayScriptsValidationTest {
+class FlywayScriptsValidationTest extends PostgresIntegrationTest {
 
     @Test
-    @DisplayName("Verify Flyway migration scripts V1 through V4 exist, are non-empty, and contain RLS & FK constraints")
-    void testFlywayScriptsIntegrity() throws Exception {
-        var resolver = new PathMatchingResourcePatternResolver();
-        Resource[] resources = resolver.getResources("classpath:db/migration/V*__*.sql");
+    @DisplayName("Verify Flyway migrations V1 to V4 run and assert tables, RLS flags and FORCE ROW LEVEL SECURITY")
+    void testFlywayMigrationsV1ToV4ExecutionAndRlsFlags() throws Exception {
+        String jdbcUrl = getJdbcUrl();
+        String username = getUsername();
+        String password = getPassword();
 
-        assertThat(resources).hasSizeGreaterThanOrEqualTo(3);
+        Flyway flyway = Flyway.configure()
+                .dataSource(jdbcUrl, username, password)
+                .locations("classpath:db/migration")
+                .cleanDisabled(false)
+                .load();
+        flyway.clean();
+        var result = flyway.migrate();
 
-        List<String> filenames = Arrays.stream(resources)
-                .map(Resource::getFilename)
-                .sorted()
-                .toList();
+        assertThat(result.success).isTrue();
+        assertThat(result.migrationsExecuted).isGreaterThanOrEqualTo(4);
 
-        assertThat(filenames).contains(
-                "V1__init_tenants_and_roles.sql",
-                "V2__init_processed_events.sql",
-                "V3__init_decisions_partitioned.sql",
-                "V4__init_transactional_outbox.sql"
-        );
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
+             Statement stmt = conn.createStatement()) {
 
-        for (Resource resource : resources) {
-            try (InputStream in = resource.getInputStream()) {
-                String sql = new String(in.readAllBytes(), StandardCharsets.UTF_8);
-                assertThat(sql).isNotBlank();
-
-                if (resource.getFilename().equals("V1__init_tenants_and_roles.sql")) {
-                    assertThat(sql).contains("CREATE TABLE IF NOT EXISTS tenants");
-                    assertThat(sql).contains("tenant_id           UUID PRIMARY KEY");
+            // 1. Assert all tables exist
+            for (String tableName : new String[]{"tenants", "processed_events", "decisions", "outbox"}) {
+                try (ResultSet rs = stmt.executeQuery("SELECT to_regclass('public." + tableName + "')")) {
+                    assertThat(rs.next()).isTrue();
+                    assertThat(rs.getString(1)).isEqualTo(tableName);
                 }
-                if (resource.getFilename().equals("V2__init_processed_events.sql")) {
-                    assertThat(sql).contains("CREATE TABLE IF NOT EXISTS processed_events");
-                    assertThat(sql).contains("REFERENCES tenants(tenant_id)");
-                    assertThat(sql).contains("ENABLE ROW LEVEL SECURITY");
-                    assertThat(sql).contains("FORCE ROW LEVEL SECURITY");
-                    assertThat(sql).contains("CREATE POLICY tenant_isolation_processed_events");
+            }
+
+            // 2. Assert seeded tenants exist
+            try (ResultSet rs = stmt.executeQuery("SELECT count(*) FROM tenants")) {
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getInt(1)).isGreaterThanOrEqualTo(2);
+            }
+
+            // 3. Assert RLS flags: relrowsecurity and relforcerowsecurity
+            try (ResultSet rs = stmt.executeQuery(
+                    "SELECT relname, relrowsecurity, relforcerowsecurity FROM pg_class " +
+                            "WHERE relname IN ('processed_events', 'decisions', 'outbox')")) {
+                int verifiedCount = 0;
+                while (rs.next()) {
+                    verifiedCount++;
+                    String relname = rs.getString("relname");
+                    boolean rowSecurity = rs.getBoolean("relrowsecurity");
+                    boolean forceRowSecurity = rs.getBoolean("relforcerowsecurity");
+
+                    assertThat(rowSecurity)
+                            .as("relrowsecurity for table " + relname)
+                            .isTrue();
+                    assertThat(forceRowSecurity)
+                            .as("relforcerowsecurity for table " + relname)
+                            .isTrue();
                 }
-                if (resource.getFilename().equals("V3__init_decisions_partitioned.sql")) {
-                    assertThat(sql).contains("CREATE TABLE IF NOT EXISTS decisions");
-                    assertThat(sql).contains("PARTITION BY RANGE (created_at)");
-                    assertThat(sql).contains("ENABLE ROW LEVEL SECURITY");
-                    assertThat(sql).contains("FORCE ROW LEVEL SECURITY");
-                    assertThat(sql).contains("CREATE POLICY tenant_isolation_decisions");
-                }
-                if (resource.getFilename().equals("V4__init_transactional_outbox.sql")) {
-                    assertThat(sql).contains("CREATE TABLE IF NOT EXISTS outbox");
-                    assertThat(sql).contains("ENABLE ROW LEVEL SECURITY");
-                    assertThat(sql).contains("FORCE ROW LEVEL SECURITY");
-                }
+                assertThat(verifiedCount).isEqualTo(3);
             }
         }
     }

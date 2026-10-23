@@ -23,4 +23,5 @@ dependencies {
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:kafka")
     testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("io.zonky.test:embedded-postgres:2.0.7")
 }

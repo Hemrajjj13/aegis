@@ -22,7 +22,7 @@ public abstract class RedisIntegrationTest {
 
     @BeforeAll
     static void checkDocker() {
-        Assumptions.assumeTrue(DockerAvailability.isAvailable(), "Docker daemon unavailable; skipping live container test");
+        DockerAvailability.requireDocker("RedisIntegrationTest");
     }
 
     public static String getRedisHost() {

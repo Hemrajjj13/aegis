@@ -21,7 +21,7 @@ public abstract class KafkaIntegrationTest {
 
     @BeforeAll
     static void checkDocker() {
-        Assumptions.assumeTrue(DockerAvailability.isAvailable(), "Docker daemon unavailable; skipping live container test");
+        DockerAvailability.requireDocker("KafkaIntegrationTest");
     }
 
     public static String getBootstrapServers() {
