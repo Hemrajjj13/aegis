@@ -18,16 +18,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetailResponse> handlePanProhibited(
             RawPanProhibitedException ex, HttpServletRequest request) {
         var problem = new ProblemDetailResponse(
-                "urn:problem:raw-pan-prohibited",
-                "Raw PAN Prohibited",
+                "urn:problem:pan-prohibited",
+                "PAN Prohibited",
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
                 request.getRequestURI(),
-                "RAW_PAN_PROHIBITED",
-                null
+                List.of(new ProblemDetailResponse.InvalidParameter(ex.getFieldName(), "Raw card numbers (PANs) are strictly prohibited"))
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .contentType(MediaType.parseMediaType("application/problem+json"))
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(problem);
     }
 
@@ -44,11 +43,10 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 "Request payload failed schema validation constraints.",
                 request.getRequestURI(),
-                "VALIDATION_ERROR",
                 params
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .contentType(MediaType.parseMediaType("application/problem+json"))
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(problem);
     }
 
@@ -61,11 +59,10 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
                 request.getRequestURI(),
-                "INVALID_REQUEST",
                 null
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .contentType(MediaType.parseMediaType("application/problem+json"))
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(problem);
     }
 }

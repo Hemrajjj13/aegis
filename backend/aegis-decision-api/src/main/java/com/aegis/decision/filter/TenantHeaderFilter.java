@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -53,7 +54,7 @@ public class TenantHeaderFilter extends OncePerRequestFilter {
 
         String tenantHeader = request.getHeader("X-Tenant-Id");
         if (tenantHeader == null || tenantHeader.isBlank()) {
-            writeProblemResponse(response, HttpServletResponse.SC_BAD_REQUEST, "MISSING_TENANT_HEADER",
+            writeProblemResponse(response, HttpServletResponse.SC_BAD_REQUEST, "X-Tenant-Id",
                     "Missing mandatory X-Tenant-Id header for multi-tenant isolation.", path);
             return;
         }
@@ -62,7 +63,7 @@ public class TenantHeaderFilter extends OncePerRequestFilter {
         try {
             tenantId = UUID.fromString(tenantHeader.trim());
         } catch (IllegalArgumentException e) {
-            writeProblemResponse(response, HttpServletResponse.SC_BAD_REQUEST, "INVALID_TENANT_ID",
+            writeProblemResponse(response, HttpServletResponse.SC_BAD_REQUEST, "X-Tenant-Id",
                     "X-Tenant-Id must be a valid UUID format.", path);
             return;
         }
@@ -75,18 +76,17 @@ public class TenantHeaderFilter extends OncePerRequestFilter {
         }
     }
 
-    private void writeProblemResponse(HttpServletResponse response, int status, String errorCode, String detail, String instance)
+    private void writeProblemResponse(HttpServletResponse response, int status, String paramName, String detail, String instance)
             throws IOException {
         response.setStatus(status);
-        response.setContentType("application/problem+json");
+        response.setContentType("application/json");
         var problem = new ProblemDetailResponse(
                 "urn:problem:bad-request",
                 "Bad Request",
                 status,
                 detail,
                 instance,
-                errorCode,
-                null
+                List.of(new ProblemDetailResponse.InvalidParameter(paramName, detail))
         );
         response.getWriter().write(objectMapper.writeValueAsString(problem));
     }

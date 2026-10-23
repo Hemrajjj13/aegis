@@ -1,6 +1,7 @@
 package com.aegis.decision.service;
 
 import com.aegis.core.domain.EvaluationResult;
+import com.aegis.decision.model.DecisionResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -58,12 +59,13 @@ public class DecisionStreamService {
             return;
         }
 
+        DecisionResponse response = DecisionResponse.from(decision);
         for (SseEmitter emitter : emitters) {
             try {
                 emitter.send(SseEmitter.event()
                         .name("decision")
                         .id(decision.decisionId().toString())
-                        .data(decision, MediaType.APPLICATION_JSON));
+                        .data(response, MediaType.APPLICATION_JSON));
             } catch (Exception e) {
                 log.debug("Failed to deliver SSE event to subscriber, removing emitter", e);
                 removeEmitter(tenantId, emitter);

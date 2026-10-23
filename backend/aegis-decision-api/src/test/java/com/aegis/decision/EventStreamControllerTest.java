@@ -48,7 +48,7 @@ class EventStreamControllerTest {
     @org.junit.jupiter.api.BeforeEach
     void setupMock() {
         org.mockito.Mockito.when(persistenceService.persistDecisionAtomically(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
-                .thenAnswer(inv -> inv.getArgument(2));
+                .thenAnswer(inv -> new DecisionPersistenceService.PersistedDecision(inv.getArgument(2), false));
     }
 
     @Test
@@ -72,7 +72,7 @@ class EventStreamControllerTest {
         mockMvc.perform(get("/v1/events/stream")
                 .accept(MediaType.TEXT_EVENT_STREAM))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
     }
 
     @Test
