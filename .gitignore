@@ -1,5 +1,9 @@
-# Temporary scratch files
+# Temporary scratch and local database files
 scratch/
+pgdata/
+.pgdata/
+tools/pgdata/
+**/pgdata/
 *.tmp
 
 # Frontend and Node dependencies & builds

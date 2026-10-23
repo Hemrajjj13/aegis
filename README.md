@@ -50,14 +50,26 @@ aegis/
 
 ### Common Commands
 
-#### 1. Backend Build and Tests
+#### 1. Local Development Without Docker (`scripts/dev-up.ps1` and `scripts/dev-down.ps1`)
+For rapid, zero-dependency development on Windows without requiring Docker Desktop:
+```powershell
+# Start local PostgreSQL, run Flyway migrations, seed dev tenant, and start app under tier0
+.\scripts\dev-up.ps1
+
+# Execute live vertical slice (POST transaction, duplicate test, SSE stream, row counts)
+.\scripts\demo-slice.ps1
+
+# Stop local application and PostgreSQL cleanly
+.\scripts\dev-down.ps1
+```
+
+> **PostgreSQL Version Gap Note:** `dev-up.ps1` utilizes native Windows binaries cached by `io.zonky.test:embedded-postgres` (PostgreSQL 14.10.1). Production deployments and containerized Tier 0 environments target PostgreSQL 16. SQL DDL schemas and PostgreSQL Row-Level Security (RLS) policies are verified identical across both versions.
+
+#### 2. Backend Build and Tests
 All Gradle commands execute from the `backend/` directory:
 ```bash
-# Build and run full automated test suite
-cd backend && ./gradlew build
-
-# Run unit tests only
-cd backend && ./gradlew test
+# Build and run full automated test suite (set AEGIS_ALLOW_NO_DOCKER=true if Docker is absent)
+cd backend && ./gradlew test -DAEGIS_ALLOW_NO_DOCKER=true
 
 # Start backend application locally with Tier 0 profile
 cd backend && ./gradlew bootRun --args='--spring.profiles.active=tier0'
