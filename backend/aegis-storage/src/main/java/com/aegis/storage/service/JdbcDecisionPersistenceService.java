@@ -49,7 +49,7 @@ public class JdbcDecisionPersistenceService implements DecisionPersistenceServic
      */
     @Override
     @Transactional
-    public EvaluationResult persistDecisionAtomically(UUID tenantId, PaymentEvent event, EvaluationResult result, String payloadHash) {
+    public PersistedDecision persistDecisionAtomically(UUID tenantId, PaymentEvent event, EvaluationResult result, String payloadHash) {
         setTenantContext(tenantId);
 
         // 1. Idempotency Check
@@ -66,9 +66,10 @@ public class JdbcDecisionPersistenceService implements DecisionPersistenceServic
                 if (!existingHash.equals(payloadHash)) {
                     throw new IllegalStateException("Payload hash mismatch for duplicate event_id: " + event.eventId());
                 }
-                // Return cached decision
-                return findDecisionById(tenantId, existingDecisionId)
+                // Return cached decision with duplicate flag set
+                EvaluationResult cached = findDecisionById(tenantId, existingDecisionId)
                         .orElse(result);
+                return new PersistedDecision(cached, true);
             }
         } catch (EmptyResultDataAccessException ignored) {
             // Event has not been processed yet; proceed with write
@@ -153,7 +154,7 @@ public class JdbcDecisionPersistenceService implements DecisionPersistenceServic
                 createdTimestamp
         );
 
-        return result;
+        return new PersistedDecision(result, false);
     }
 
     @Override

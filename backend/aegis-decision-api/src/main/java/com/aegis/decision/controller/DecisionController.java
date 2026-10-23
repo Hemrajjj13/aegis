@@ -82,16 +82,19 @@ public class DecisionController {
         EvaluationResult evaluationResult = evaluationCore.evaluate(event, clock);
 
         String payloadHash = computePayloadHash(event);
-        EvaluationResult finalResult = persistenceService.persistDecisionAtomically(
+        DecisionPersistenceService.PersistedDecision persisted = persistenceService.persistDecisionAtomically(
                 event.tenantId(),
                 event,
                 evaluationResult,
                 payloadHash
         );
 
-        streamService.publishDecision(event.tenantId(), finalResult);
+        // A duplicate POST (same event_id) must NOT broadcast a second SSE event
+        if (!persisted.duplicate()) {
+            streamService.publishDecision(event.tenantId(), persisted.result());
+        }
 
-        DecisionResponse response = DecisionResponse.from(finalResult);
+        DecisionResponse response = DecisionResponse.from(persisted.result());
         return ResponseEntity.ok(response);
     }
 

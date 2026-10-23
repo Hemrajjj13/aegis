@@ -19,9 +19,9 @@ public interface DecisionPersistenceService {
 
     /**
      * Persists decision, processed_events idempotency record, and outbox event in ONE transaction.
-     * If event_id has already been processed with matching payload, returns existing decision.
+     * If event_id has already been processed with matching payload, returns existing decision with duplicate=true.
      */
-    EvaluationResult persistDecisionAtomically(UUID tenantId, PaymentEvent event, EvaluationResult result, String payloadHash);
+    PersistedDecision persistDecisionAtomically(UUID tenantId, PaymentEvent event, EvaluationResult result, String payloadHash);
 
     /**
      * Finds decision by tenant and decision ID.
@@ -32,4 +32,9 @@ public interface DecisionPersistenceService {
      * Finds all decisions for a given tenant.
      */
     List<EvaluationResult> findAllDecisionsForTenant(UUID tenantId);
+
+    /**
+     * Result record encapsulating the evaluation decision and idempotency duplicate state.
+     */
+    record PersistedDecision(EvaluationResult result, boolean duplicate) {}
 }

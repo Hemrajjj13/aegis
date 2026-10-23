@@ -16,6 +16,8 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.sql.Connection;
+import java.sql.Statement;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -33,29 +35,54 @@ class DecisionPersistenceIntegrationTest extends PostgresIntegrationTest {
     private static final UUID TENANT_B = UUID.fromString("00000000-0000-0000-0000-000000000002");
 
     @BeforeEach
-    void setUp() {
-        if (!DockerAvailability.isAvailable()) {
-            return;
-        }
-
-        var dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl(getJdbcUrl());
-        dataSource.setUsername(getUsername());
-        dataSource.setPassword(getPassword());
+    void setUp() throws Exception {
+        // 1. Run migrations as admin/superuser
+        var adminDataSource = new DriverManagerDataSource();
+        adminDataSource.setDriverClassName("org.postgresql.Driver");
+        adminDataSource.setUrl(getJdbcUrl());
+        adminDataSource.setUsername(getUsername());
+        adminDataSource.setPassword(getPassword());
 
         Flyway flyway = Flyway.configure()
-                .dataSource(dataSource)
+                .dataSource(adminDataSource)
                 .locations("classpath:db/migration")
                 .cleanDisabled(false)
                 .load();
         flyway.clean();
         flyway.migrate();
 
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
-        var txManager = new DataSourceTransactionManager(dataSource);
+        // 2. Grant permissions to app_live_user (non-superuser)
+        try (Connection conn = adminDataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("ALTER ROLE app_live_user WITH LOGIN PASSWORD 'app_live_pass'");
+            stmt.execute("GRANT USAGE ON SCHEMA public TO app_live_user");
+            stmt.execute("GRANT SELECT ON TABLE tenants TO app_live_user");
+            stmt.execute("GRANT SELECT, INSERT ON TABLE processed_events, decisions, outbox TO app_live_user");
+            stmt.execute("GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_live_user");
+        }
+
+        // 3. Connect as non-superuser app_live_user
+        var appLiveDataSource = new DriverManagerDataSource();
+        appLiveDataSource.setDriverClassName("org.postgresql.Driver");
+        appLiveDataSource.setUrl(getJdbcUrl());
+        appLiveDataSource.setUsername("app_live_user");
+        appLiveDataSource.setPassword("app_live_pass");
+
+        this.jdbcTemplate = new JdbcTemplate(appLiveDataSource);
+        var txManager = new DataSourceTransactionManager(appLiveDataSource);
         this.transactionTemplate = new TransactionTemplate(txManager);
         this.persistenceService = new JdbcDecisionPersistenceService(jdbcTemplate, new ObjectMapper());
+    }
+
+    @Test
+    @DisplayName("Verify persistence tests connect as the non-superuser role app_live_user")
+    void testConnectedAsNonSuperuserAppLiveUser() {
+        String currentUser = jdbcTemplate.queryForObject("SELECT current_user", String.class);
+        assertThat(currentUser).isEqualTo("app_live_user");
+
+        Boolean isSuperuser = jdbcTemplate.queryForObject(
+                "SELECT usesuper FROM pg_user WHERE usename = current_user", Boolean.class);
+        assertThat(isSuperuser).isFalse();
     }
 
     @Test
@@ -113,21 +140,23 @@ class DecisionPersistenceIntegrationTest extends PostgresIntegrationTest {
         String payloadHash = "sha256_canonical_hash_abc123";
 
         // First submission
-        EvaluationResult persisted1 = transactionTemplate.execute(status ->
+        var persisted1 = transactionTemplate.execute(status ->
                 persistenceService.persistDecisionAtomically(TENANT_A, event, result1, payloadHash)
         );
         assertThat(persisted1).isNotNull();
+        assertThat(persisted1.duplicate()).isFalse();
 
         // Second submission with identical payload hash and different result instance
         EvaluationResult result2 = createTestResult(eventId, DecisionOutcome.DECLINE, 99.0);
-        EvaluationResult persisted2 = transactionTemplate.execute(status ->
+        var persisted2 = transactionTemplate.execute(status ->
                 persistenceService.persistDecisionAtomically(TENANT_A, event, result2, payloadHash)
         );
 
-        // Assert second call returns the original decision
+        // Assert second call returns the original decision with duplicate=true
         assertThat(persisted2).isNotNull();
-        assertThat(persisted2.decisionId()).isEqualTo(persisted1.decisionId());
-        assertThat(persisted2.outcome()).isEqualTo(DecisionOutcome.REVIEW);
+        assertThat(persisted2.duplicate()).isTrue();
+        assertThat(persisted2.result().decisionId()).isEqualTo(persisted1.result().decisionId());
+        assertThat(persisted2.result().outcome()).isEqualTo(DecisionOutcome.REVIEW);
 
         // Verify database counts: exactly one row in each of the three tables
         transactionTemplate.execute(status -> {
@@ -147,9 +176,52 @@ class DecisionPersistenceIntegrationTest extends PostgresIntegrationTest {
 
             Integer outboxCount = jdbcTemplate.queryForObject(
                     "SELECT count(*) FROM outbox WHERE aggregate_id = ?",
-                    Integer.class, persisted1.decisionId().toString()
+                    Integer.class, persisted1.result().decisionId().toString()
             );
             assertThat(outboxCount).isEqualTo(1);
+
+            return null;
+        });
+    }
+
+    @Test
+    @DisplayName("A failure mid-transaction leaves nothing behind (atomicity verification)")
+    void testFailureMidTransactionLeavesNothingBehind() {
+        String failEventId = "evt_fail_tx_test_1";
+        PaymentEvent failEvent = createTestEvent(failEventId, TENANT_A, 2500000L);
+        EvaluationResult failResult = createTestResult(failEventId, DecisionOutcome.APPROVE, 20.0);
+        String payloadHash = "sha256_fail_tx_hash";
+
+        try {
+            transactionTemplate.execute(status -> {
+                persistenceService.persistDecisionAtomically(TENANT_A, failEvent, failResult, payloadHash);
+                throw new RuntimeException("Simulated mid-transaction failure for rollback test");
+            });
+        } catch (RuntimeException expected) {
+            assertThat(expected.getMessage()).contains("Simulated mid-transaction failure");
+        }
+
+        // Verify nothing was left behind in decisions, processed_events, or outbox
+        transactionTemplate.execute(status -> {
+            persistenceService.setTenantContext(TENANT_A);
+
+            Integer decisionCount = jdbcTemplate.queryForObject(
+                    "SELECT count(*) FROM decisions WHERE event_id = ?",
+                    Integer.class, failEventId
+            );
+            assertThat(decisionCount).isZero();
+
+            Integer processedCount = jdbcTemplate.queryForObject(
+                    "SELECT count(*) FROM processed_events WHERE event_id = ?",
+                    Integer.class, failEventId
+            );
+            assertThat(processedCount).isZero();
+
+            Integer outboxCount = jdbcTemplate.queryForObject(
+                    "SELECT count(*) FROM outbox WHERE aggregate_id = ?",
+                    Integer.class, failResult.decisionId().toString()
+            );
+            assertThat(outboxCount).isZero();
 
             return null;
         });
