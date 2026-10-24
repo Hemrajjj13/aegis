@@ -88,11 +88,29 @@ docker compose -f infra/docker-compose.yml ps
 docker compose -f infra/docker-compose.yml down
 ```
 
-#### 3. Frontend Development
+#### 3. Frontend Console (`frontend/`)
+The frontend operator console is a single-page React 18 application built with TypeScript strict mode, Vite, Tailwind CSS driven by `DESIGN.md` CSS variable tokens, and `@tanstack/react-virtual`.
+
+> **Memory Budget Warning:** On low-memory development machines (~3.89 GB RAM), **Gradle tests (`./gradlew test`), the backend (`scripts/dev-up.ps1`), and Playwright E2E tests must NOT run simultaneously.** Run one at a time to prevent Out-Of-Memory (OOM) failures or process thrashing.
+
 ```bash
 cd frontend
 npm install
-npm run dev
+
+# Type-safe API generation & verification
+npm run gen:api        # Regenerates src/api/schema.d.ts from api/openapi.yaml
+npm run gen:api:check  # Verifies schema types are up to date
+
+# Code quality & unit tests
+npm run lint           # ESLint with zero warnings
+npm run typecheck      # Strict TypeScript check (tsc --noEmit)
+npm test               # Vitest suite (DecisionBadge, ring buffer, decisionReducer)
+
+# End-to-end tests (requires backend running via scripts/dev-up.ps1)
+npm run e2e            # Playwright Chromium & Axe WCAG 2.1 AA accessibility tests
+
+# Production build
+npm run build          # Compiles optimized production bundle into dist/
 ```
 
 #### 4. Architecture and Documentation Verification

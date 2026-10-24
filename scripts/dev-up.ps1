@@ -11,7 +11,8 @@
 [CmdletBinding()]
 param(
     [int]$Port = 5432,
-    [switch]$NoApp
+    [switch]$NoApp,
+    [switch]$Wait
 )
 
 $ErrorActionPreference = "Stop"
@@ -150,3 +151,8 @@ Write-Host "  - Dev Tenant UUID: 00000000-0000-0000-0000-000000000001" -Foregrou
 Write-Host "  - App PID:         $($appProc.Id)" -ForegroundColor Green
 Write-Host "  - App Log:         $appLog" -ForegroundColor Green
 Write-Host "================================================================================" -ForegroundColor Green
+
+if ($Wait) {
+    Write-Host "`n[dev-up] Running in daemon mode. Waiting on app PID $($appProc.Id)..." -ForegroundColor Cyan
+    Wait-Process -Id $appProc.Id
+}

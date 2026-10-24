@@ -10,6 +10,8 @@ tools/pgdata/
 node_modules/
 frontend/node_modules/
 frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
 tools/extracted_schema.sql
 
 # Gradle and Java build outputs
