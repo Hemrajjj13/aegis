@@ -1,0 +1,364 @@
+{
+  "audit_date": "2026-10-27",
+  "section_3_module_inventory": {
+    "backend_modules": [
+      {
+        "module": "backend/aegis-app",
+        "main_lines": 9,
+        "test_lines": 18,
+        "main_classes": 1,
+        "test_classes": 1,
+        "verdict": "PARTIAL",
+        "evidence": "Contains only AegisApplication.java entry point; fails context load test under Java 24."
+      },
+      {
+        "module": "backend/aegis-audit",
+        "main_lines": 0,
+        "test_lines": 0,
+        "main_classes": 0,
+        "test_classes": 0,
+        "verdict": "EMPTY SHELL",
+        "evidence": "Module declared in settings.gradle.kts with build.gradle.kts, but has zero Java files in src/main and src/test."
+      },
+      {
+        "module": "backend/aegis-core",
+        "main_lines": 203,
+        "test_lines": 107,
+        "main_classes": 7,
+        "test_classes": 1,
+        "verdict": "PARTIAL",
+        "evidence": "Domain records and DeterministicClock implemented; evaluation engine remains an unimplemented SPI."
+      },
+      {
+        "module": "backend/aegis-dataset-importer",
+        "main_lines": 0,
+        "test_lines": 0,
+        "main_classes": 0,
+        "test_classes": 0,
+        "verdict": "EMPTY SHELL",
+        "evidence": "Module declared in settings.gradle.kts with build.gradle.kts, but has zero Java files."
+      },
+      {
+        "module": "backend/aegis-decision-api",
+        "main_lines": 561,
+        "test_lines": 680,
+        "main_classes": 11,
+        "test_classes": 4,
+        "verdict": "PARTIAL",
+        "evidence": "Real HTTP endpoints for POST /v1/decisions and GET /v1/events/stream implemented with RFC 7807 error models, backed by StubEvaluationCore."
+      },
+      {
+        "module": "backend/aegis-identity",
+        "main_lines": 0,
+        "test_lines": 0,
+        "main_classes": 0,
+        "test_classes": 0,
+        "verdict": "EMPTY SHELL",
+        "evidence": "Module declared in settings.gradle.kts with build.gradle.kts, but has zero Java files."
+      },
+      {
+        "module": "backend/aegis-replay",
+        "main_lines": 0,
+        "test_lines": 0,
+        "main_classes": 0,
+        "test_classes": 0,
+        "verdict": "EMPTY SHELL",
+        "evidence": "Module declared in settings.gradle.kts with build.gradle.kts, but has zero Java files."
+      },
+      {
+        "module": "backend/aegis-rules",
+        "main_lines": 0,
+        "test_lines": 0,
+        "main_classes": 0,
+        "test_classes": 0,
+        "verdict": "EMPTY SHELL",
+        "evidence": "Module declared in settings.gradle.kts with build.gradle.kts, but has zero Java files."
+      },
+      {
+        "module": "backend/aegis-storage",
+        "main_lines": 316,
+        "test_lines": 512,
+        "main_classes": 3,
+        "test_classes": 8,
+        "verdict": "PARTIAL",
+        "evidence": "Flyway V1-V4 migrations and JdbcDecisionPersistenceService implemented with RLS session setting; tests fail locally due to Windows embedded postgres crash."
+      },
+      {
+        "module": "backend/aegis-velocity",
+        "main_lines": 0,
+        "test_lines": 0,
+        "main_classes": 0,
+        "test_classes": 0,
+        "verdict": "EMPTY SHELL",
+        "evidence": "Module declared in settings.gradle.kts with build.gradle.kts, but has zero Java files."
+      }
+    ],
+    "frontend": {
+      "main_lines": 3915,
+      "test_lines": 198,
+      "main_files": 14,
+      "test_files": 4,
+      "verdict": "PARTIAL",
+      "evidence": "Live decisions console, ring buffer (capacity 2,000), virtualized table, and test transaction modal implemented; case queue, rule editor, and auth pages not started."
+    },
+    "hardcoded_constants_and_stubs": [
+      {
+        "file": "backend/aegis-decision-api/src/main/java/com/aegis/decision/service/StubEvaluationCore.java",
+        "line": 16,
+        "value": "* StubEvaluationCore implementation of EvaluationCore."
+      },
+      {
+        "file": "backend/aegis-decision-api/src/main/java/com/aegis/decision/service/StubEvaluationCore.java",
+        "line": 17,
+        "value": "* Stub rule: amount_inr >= 50000 -> REVIEW, else APPROVE."
+      },
+      {
+        "file": "backend/aegis-decision-api/src/main/java/com/aegis/decision/service/StubEvaluationCore.java",
+        "line": 20,
+        "value": "public class StubEvaluationCore implements EvaluationCore"
+      },
+      {
+        "file": "backend/aegis-decision-api/src/main/java/com/aegis/decision/service/StubEvaluationCore.java",
+        "line": 21,
+        "value": "public static final double REVIEW_THRESHOLD_INR = 50000.0;"
+      },
+      {
+        "file": "backend/aegis-decision-api/src/main/java/com/aegis/decision/service/StubEvaluationCore.java",
+        "line": 34,
+        "value": "score = 75.0;"
+      },
+      {
+        "file": "backend/aegis-decision-api/src/main/java/com/aegis/decision/service/StubEvaluationCore.java",
+        "line": 36,
+        "value": "\"STUB-HIGH-AMOUNT\""
+      },
+      {
+        "file": "backend/aegis-decision-api/src/main/java/com/aegis/decision/service/StubEvaluationCore.java",
+        "line": 37,
+        "value": "\"Transaction amount exceeds 50,000 INR threshold\""
+      },
+      {
+        "file": "backend/aegis-decision-api/src/main/java/com/aegis/decision/service/StubEvaluationCore.java",
+        "line": 39,
+        "value": "\"AMOUNT_GE_50K\""
+      },
+      {
+        "file": "backend/aegis-decision-api/src/main/java/com/aegis/decision/service/StubEvaluationCore.java",
+        "line": 43,
+        "value": "score = 15.0;"
+      },
+      {
+        "file": "backend/aegis-decision-api/src/main/java/com/aegis/decision/service/StubEvaluationCore.java",
+        "line": 55,
+        "value": "\"stub-ruleset-v1\""
+      },
+      {
+        "file": "backend/aegis-decision-api/src/main/java/com/aegis/decision/service/StubEvaluationCore.java",
+        "line": 56,
+        "value": "\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\""
+      },
+      {
+        "file": "frontend/src/api/client.ts",
+        "line": 11,
+        "value": "00000000-0000-0000-0000-000000000001"
+      },
+      {
+        "file": "frontend/src/state/decisionReducer.ts",
+        "line": 3,
+        "value": "RING_BUFFER_CAPACITY = 2000"
+      }
+    ]
+  },
+  "section_5_contract_and_schema_truth": {
+    "endpoints": {
+      "total_openapi_paths": 46,
+      "total_openapi_operations": 51,
+      "implemented": [
+        {
+          "method": "POST",
+          "path": "/v1/decisions",
+          "source": "backend/aegis-decision-api/src/main/java/com/aegis/decision/controller/DecisionController.java:44"
+        },
+        {
+          "method": "GET",
+          "path": "/v1/events/stream",
+          "source": "backend/aegis-decision-api/src/main/java/com/aegis/decision/controller/EventStreamController.java:26"
+        }
+      ],
+      "specified_not_implemented_count": 49
+    },
+    "tables": {
+      "migrated_v1_to_v4": [
+        "tenants",
+        "processed_events",
+        "decisions",
+        "decisions_y2026m10",
+        "decisions_y2026m11",
+        "decisions_y2026m12",
+        "decisions_default",
+        "outbox"
+      ],
+      "document_07_tables_missing": [
+        "cases",
+        "case_events",
+        "decision_audit_batches",
+        "audit_chain_heads",
+        "audit_management_events",
+        "rulesets",
+        "ruleset_versions",
+        "maker_checker_audit",
+        "replay_runs",
+        "replay_decisions",
+        "dataset_imports"
+      ],
+      "document_19_identity_tables_missing": [
+        "users",
+        "tenants_users",
+        "api_keys",
+        "user_totp_secrets",
+        "user_refresh_tokens",
+        "signup_invitations"
+      ]
+    },
+    "postgres_versions": {
+      "test_containers": "postgres:16-alpine",
+      "test_fallback_embedded": "14.10.1",
+      "dev_scripts": "14.10.1 (scripts/dev-up.ps1) / postgres:16-alpine (infra/docker-compose.yml)",
+      "ci": "None (No CI workflow exists)"
+    }
+  },
+  "section_6_backlog_progress": {
+    "milestones": [
+      {
+        "milestone": "M0",
+        "name": "Scaffolding, Build Topology & Tier 0 Compose Setup",
+        "total_tasks": 3,
+        "done_tasks": 1,
+        "partial_tasks": 2,
+        "not_started_tasks": 0,
+        "total_points": 13,
+        "completed_points": 3,
+        "task_percentage": 33.3,
+        "point_percentage": 23.1
+      },
+      {
+        "milestone": "M1",
+        "name": "End-to-End Vertical Slice (One In, One Out, One Seen)",
+        "total_tasks": 5,
+        "done_tasks": 5,
+        "partial_tasks": 0,
+        "not_started_tasks": 0,
+        "total_points": 21,
+        "completed_points": 21,
+        "task_percentage": 100.0,
+        "point_percentage": 100.0
+      },
+      {
+        "milestone": "M2",
+        "name": "Evaluation Core, CEL Engine & Deterministic Clock",
+        "total_tasks": 3,
+        "done_tasks": 1,
+        "partial_tasks": 0,
+        "not_started_tasks": 2,
+        "total_points": 21,
+        "completed_points": 5,
+        "task_percentage": 33.3,
+        "point_percentage": 23.8
+      },
+      {
+        "milestone": "M3",
+        "name": "Velocity Store, Redis Lua & Concurrency Controls",
+        "total_tasks": 5,
+        "done_tasks": 0,
+        "partial_tasks": 0,
+        "not_started_tasks": 5,
+        "total_points": 34,
+        "completed_points": 0,
+        "task_percentage": 0.0,
+        "point_percentage": 0.0
+      },
+      {
+        "milestone": "M4",
+        "name": "Rule Management, Versioning & Maker-Checker Workflow",
+        "total_tasks": 4,
+        "done_tasks": 0,
+        "partial_tasks": 0,
+        "not_started_tasks": 4,
+        "total_points": 21,
+        "completed_points": 0,
+        "task_percentage": 0.0,
+        "point_percentage": 0.0
+      },
+      {
+        "milestone": "M5",
+        "name": "Deterministic Replay Engine & Shift Matrix",
+        "total_tasks": 5,
+        "done_tasks": 0,
+        "partial_tasks": 0,
+        "not_started_tasks": 5,
+        "total_points": 34,
+        "completed_points": 0,
+        "task_percentage": 0.0,
+        "point_percentage": 0.0
+      },
+      {
+        "milestone": "M6",
+        "name": "Dataset Importer & Free Backtest Comparison Report",
+        "total_tasks": 3,
+        "done_tasks": 0,
+        "partial_tasks": 0,
+        "not_started_tasks": 3,
+        "total_points": 21,
+        "completed_points": 0,
+        "task_percentage": 0.0,
+        "point_percentage": 0.0
+      },
+      {
+        "milestone": "M7",
+        "name": "Console UI, Virtualized Tables & SSE Live Telemetry",
+        "total_tasks": 6,
+        "done_tasks": 1,
+        "partial_tasks": 1,
+        "not_started_tasks": 4,
+        "total_points": 34,
+        "completed_points": 8,
+        "task_percentage": 16.7,
+        "point_percentage": 23.5
+      },
+      {
+        "milestone": "M8",
+        "name": "Identity Subsystem, Argon2id, TOTP & RBAC Guard",
+        "total_tasks": 5,
+        "done_tasks": 0,
+        "partial_tasks": 0,
+        "not_started_tasks": 5,
+        "total_points": 21,
+        "completed_points": 0,
+        "task_percentage": 0.0,
+        "point_percentage": 0.0
+      },
+      {
+        "milestone": "M9",
+        "name": "Hardening, Load/Chaos Verification & Pilot Readiness",
+        "total_tasks": 7,
+        "done_tasks": 0,
+        "partial_tasks": 1,
+        "not_started_tasks": 6,
+        "total_points": 34,
+        "completed_points": 0,
+        "task_percentage": 0.0,
+        "point_percentage": 0.0
+      }
+    ],
+    "total_summary": {
+      "total_tasks": 46,
+      "done_tasks": 9,
+      "partial_tasks": 4,
+      "not_started_tasks": 33,
+      "total_points": 214,
+      "completed_points": 37,
+      "overall_task_percentage": 19.6,
+      "overall_point_percentage": 17.3
+    }
+  }
+}
