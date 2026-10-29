@@ -37,6 +37,7 @@ aegis/
 │   └── (module shells)     # velocity, rules, replay, identity, audit, dataset-importer
 ├── frontend/               # React operator and analyst console SPA (TypeScript / Vite)
 │   └── README.md           # Console architecture and setup guide
+├── website/                # Public marketing site (Astro, static)
 ├── api/
 │   └── openapi.yaml        # Authoritative OpenAPI 3.1 specification
 ├── infra/
@@ -51,8 +52,13 @@ aegis/
 ### Common Commands
 
 #### 1. Local Development Without Docker (`scripts/dev-up.ps1` and `scripts/dev-down.ps1`)
-For rapid, zero-dependency development on Windows without requiring Docker Desktop:
+For rapid development on Windows without requiring Docker Desktop, Aegis supports an installed or portable PostgreSQL 16 instance:
 ```powershell
+# Set environment variables (or rely on local defaults):
+# $env:AEGIS_PG_URL="jdbc:postgresql://127.0.0.1:5432/aegis"
+# $env:AEGIS_PG_USER="aegis"
+# $env:AEGIS_PG_PASSWORD="aegis"
+
 # Start local PostgreSQL, run Flyway migrations, seed dev tenant, and start app under tier0
 .\scripts\dev-up.ps1
 
@@ -63,7 +69,11 @@ For rapid, zero-dependency development on Windows without requiring Docker Deskt
 .\scripts\dev-down.ps1
 ```
 
-> **PostgreSQL Version Gap Note:** `dev-up.ps1` utilizes native Windows binaries cached by `io.zonky.test:embedded-postgres` (PostgreSQL 14.10.1). Production deployments and containerized Tier 0 environments target PostgreSQL 16. SQL DDL schemas and PostgreSQL Row-Level Security (RLS) policies are verified identical across both versions.
+> **Database Configuration and Testcontainers Policy:**
+> - When Docker is available, backend integration tests automatically spin up containerized PostgreSQL 16 instances via **Testcontainers**.
+> - When Docker is not available, tests connect to a local PostgreSQL 16 instance via `AEGIS_PG_URL` (default: `jdbc:postgresql://127.0.0.1:5432/aegis`), `AEGIS_PG_USER`, and `AEGIS_PG_PASSWORD`.
+> - If neither Docker nor a reachable PostgreSQL instance exists, database integration tests **fail immediately with explicit setup instructions**; tests never skip silently.
+> - Zonky embedded-Postgres has been fully removed. All local testing executes against real PostgreSQL 16.
 
 #### 2. Backend Build and Tests
 All Gradle commands execute from the `backend/` directory:

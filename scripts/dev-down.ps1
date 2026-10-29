@@ -32,16 +32,8 @@ Get-Process -Name "java" -ErrorAction SilentlyContinue | Where-Object {
 } | Stop-Process -Force -ErrorAction SilentlyContinue
 Write-Host "  Aegis application stopped." -ForegroundColor Green
 
-# 2. Stop PostgreSQL Server
+# 2. Stop PostgreSQL Server (if managed via pid)
 Write-Host "`n[2/2] Stopping local PostgreSQL server..." -ForegroundColor Yellow
-$pgExe = Get-ChildItem -Path "$env:LOCALAPPDATA\Temp\embedded-pg" -Filter "postgres.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-$pgDataDir = "$rootDir\scratch\pgdata"
-
-if ($pgExe -and (Test-Path "$pgDataDir\PG_VERSION")) {
-    $binDir = $pgExe.DirectoryName
-    & "$binDir\pg_ctl.exe" -D "$pgDataDir" stop -m fast | Out-Null
-}
-
 $pgPidFile = "$rootDir\scratch\postgres.pid"
 if (Test-Path $pgPidFile) {
     $pgPid = Get-Content $pgPidFile -ErrorAction SilentlyContinue
@@ -51,10 +43,11 @@ if (Test-Path $pgPidFile) {
     Remove-Item $pgPidFile -Force -ErrorAction SilentlyContinue
 }
 
-# Terminate any remaining postgres processes running from embedded-pg
-Get-Process -Name "postgres" -ErrorAction SilentlyContinue | Where-Object {
-    $_.Path -match "embedded-pg"
-} | Stop-Process -Force -ErrorAction SilentlyContinue
+$pgCtl = "$rootDir\scratch\pgsql16\pgsql\bin\pg_ctl.exe"
+$pgDataDir = "$rootDir\scratch\pgdata"
+if ((Test-Path $pgCtl) -and (Test-Path "$pgDataDir\PG_VERSION")) {
+    & $pgCtl -D "$pgDataDir" stop -m fast | Out-Null
+}
 
 Write-Host "  Local PostgreSQL stopped." -ForegroundColor Green
 

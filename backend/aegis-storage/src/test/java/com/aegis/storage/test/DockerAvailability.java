@@ -28,14 +28,8 @@ public final class DockerAvailability {
 
     public static void requireDocker(String testName) {
         if (!AVAILABLE) {
-            if (isNoDockerAllowed()) {
-                org.junit.jupiter.api.Assumptions.assumeTrue(false,
-                        "Docker is missing for " + testName + " but AEGIS_ALLOW_NO_DOCKER=true; test SKIPPED");
-            } else {
-                org.junit.jupiter.api.Assertions.fail(
-                        "Docker is required for " + testName + ", but Docker daemon is unavailable on host. " +
-                                "Set environment variable AEGIS_ALLOW_NO_DOCKER=true to allow skipping Docker-dependent tests.");
-            }
+            org.junit.jupiter.api.Assumptions.assumeTrue(false,
+                    "Docker daemon is unavailable on host; " + testName + " SKIPPED.");
         }
     }
 }

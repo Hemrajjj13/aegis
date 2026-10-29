@@ -52,6 +52,7 @@ This index is the single entry point for all Project Aegis engineering, architec
 | **ADR-0008** | [adr/0008-dataset-import-for-backtests.md](./adr/0008-dataset-import-for-backtests.md) | How does the dataset import pipeline enable free backtests safely? | Draft-complete | Decision D8 |
 | **ADR-0009** | [adr/0009-pre-build-schema-and-contract-corrections.md](./adr/0009-pre-build-schema-and-contract-corrections.md) | What schema, FK, case queue, and OpenAPI corrections govern pre-build contracts? | Draft-complete | AGENTS.md Law 2 |
 | **ADR-0010** | [adr/0010-repository-layout.md](./adr/0010-repository-layout.md) | How are backend, frontend, infrastructure, and tools cleanly decoupled? | Accepted | Repository Architecture |
+| **ADR-0012** | [adr/0012-marketing-website-lives-in-website.md](./adr/0012-marketing-website-lives-in-website.md) | Why does the public marketing site live in `website/`? | Accepted | Repository Architecture |
 | **06** | [06-api-and-event-schemas.md](./06-api-and-event-schemas.md) | What are the exact OpenAPI 3.1 REST schemas and Kafka event contracts? | Draft-complete | OpenAPI Contract / Protected Doc |
 | **07** | [07-data-model.md](./07-data-model.md) | Which PostgreSQL tables exist, how is PII isolated, and what is retained? | Draft-complete | Privacy Review / Protected Doc |
 | **08** | [08-threat-model.md](./08-threat-model.md) | What are the STRIDE attack vectors, abuse cases, and security mitigations? | Draft-complete | Security Sign-off |
@@ -94,6 +95,7 @@ This index is the single entry point for all Project Aegis engineering, architec
 | [adr/0000-template.md](./adr/0000-template.md) | Standard template for proposing Architecture Decision Records |
 | [CHANGELOG.md](./CHANGELOG.md) | Semantic versioning log of all documentation releases and spec increments |
 | [audit/readiness-report.md](./audit/readiness-report.md) | Formal Build Readiness (7/7 passed) and Pilot Readiness evaluation report |
+| [audit/project-status.md](./audit/project-status.md) | Repository status audit report and verified environment measurements |
 | [audit/build-blockers.md](./audit/build-blockers.md) | Local development environment blockers and hardware telemetry measurements |
 | [archive/Project Aegis Documentation Suite v0.1.md](./archive/Project%20Aegis%20Documentation%20Suite%20v0.1.md) | Historical founding document suite and inception brief (October 2026) |
 
