@@ -3,22 +3,20 @@ package com.aegis.decision.context;
 import java.util.UUID;
 
 /**
- * ThreadLocal context holding authenticated tenant UUID for the current request.
+ * Delegates to com.aegis.core.context.TenantContextHolder for backward compatibility.
  */
 public final class TenantContextHolder {
-    private static final ThreadLocal<UUID> CONTEXT = new ThreadLocal<>();
-
     private TenantContextHolder() {}
 
     public static void setTenantId(UUID tenantId) {
-        CONTEXT.set(tenantId);
+        com.aegis.core.context.TenantContextHolder.setTenantId(tenantId);
     }
 
     public static UUID getTenantId() {
-        return CONTEXT.get();
+        return com.aegis.core.context.TenantContextHolder.getTenantId();
     }
 
     public static void clear() {
-        CONTEXT.remove();
+        com.aegis.core.context.TenantContextHolder.clear();
     }
 }

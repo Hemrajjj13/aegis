@@ -5,6 +5,8 @@ pgdata/
 tools/pgdata/
 **/pgdata/
 *.tmp
+.dev-keys/
+**/.dev-keys/
 
 # Frontend and Node dependencies & builds
 node_modules/
