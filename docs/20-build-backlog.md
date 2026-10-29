@@ -140,6 +140,9 @@ Total Backlog Points: 214 Story Points
 ---
 
 ### Milestone M8: Identity Subsystem, Credentials, and RBAC (21 Points)
+
+> **ADR-0011 Alignment:** Implements in-house identity provider, globally unique normalized email/mobile, Argon2id hashing, RS256/EdDSA JWT signing with dev-key auto-generation, AES-256-GCM TOTP encryption, in-memory rate limiting, and dedicated `app_auth_user` RLS role. Machine API-key / HMAC callers (`/tenant/keys`) are deferred as a recorded production gap; `POST /v1/decisions` accepts console user bearer tokens in the interim.
+
 - **Goal:** Implement the pluggable in-house identity subsystem for Tier 0 and Tier 1 without third-party SaaS dependencies.
 - **Stories:**
   - `TSK-035` (5 pts): Flyway `V9__init_auth_and_sessions.sql` schema and entities for users, credentials, TOTP secrets, invites, and sessions, supporting the seven canonical roles (`owner`, `admin`, `risk_manager`, `rule_author`, `risk_analyst`, `auditor`, `developer`). Ref: [Doc 19 §2](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).

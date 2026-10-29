@@ -11,6 +11,9 @@
 
 ## 1. Purpose and Methodology
 
+> **Auth & Identity Controls (ADR-0011):** Console authentication enforces RS256/EdDSA asymmetric algorithm pinning (rejecting `none` and algorithm confusion), AES-256-GCM encryption of TOTP MFA secrets via `AEGIS_TOTP_ENC_KEY`, brute-force lockout (5 attempts / 30 min), dedicated `app_auth_user` DB role without BYPASSRLS, and restricts `aegis.auth.mode=dev-header` strictly to Tier 0.
+
+
 This document establishes the threat model and defensive architecture for Project Aegis. Because Aegis is a real-time financial decision engine returning verdicts (`approve`, `decline`, `review`) on high-throughput payment traffic, security failures directly cause financial loss, regulatory fines (RBI, DPDP Act 2023), or catastrophic reputation damage.
 
 The analysis uses Microsoft's **STRIDE** methodology (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) evaluated across:

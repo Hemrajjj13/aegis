@@ -45,8 +45,8 @@ CREATE TABLE aegis_auth.users (
     lockout_until TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CONSTRAINT uq_tenant_email UNIQUE (tenant_id, email),
-    CONSTRAINT uq_tenant_mobile UNIQUE (tenant_id, mobile)
+    CONSTRAINT uq_global_email UNIQUE (email),
+    CONSTRAINT uq_global_mobile UNIQUE (mobile)
 );
 
 -- 2. Credentials Table (Argon2id Hashes)

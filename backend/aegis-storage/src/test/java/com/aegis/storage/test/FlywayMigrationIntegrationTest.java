@@ -24,6 +24,7 @@ class FlywayMigrationIntegrationTest extends PostgresIntegrationTest {
                 .dataSource(jdbcUrl, username, password)
                 .locations("classpath:db/migration")
                 .cleanDisabled(false)
+                .outOfOrder(true)
                 .load();
 
         flyway.clean();

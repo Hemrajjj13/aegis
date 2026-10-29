@@ -52,6 +52,7 @@ This index is the single entry point for all Project Aegis engineering, architec
 | **ADR-0008** | [adr/0008-dataset-import-for-backtests.md](./adr/0008-dataset-import-for-backtests.md) | How does the dataset import pipeline enable free backtests safely? | Draft-complete | Decision D8 |
 | **ADR-0009** | [adr/0009-pre-build-schema-and-contract-corrections.md](./adr/0009-pre-build-schema-and-contract-corrections.md) | What schema, FK, case queue, and OpenAPI corrections govern pre-build contracts? | Draft-complete | AGENTS.md Law 2 |
 | **ADR-0010** | [adr/0010-repository-layout.md](./adr/0010-repository-layout.md) | How are backend, frontend, infrastructure, and tools cleanly decoupled? | Accepted | Repository Architecture |
+| **ADR-0011** | [adr/0011-auth-architecture-and-tenant-isolation.md](./adr/0011-auth-architecture-and-tenant-isolation.md) | How are auth state, global uniqueness, RLS lookups, and key lifecycles governed? | Accepted | Decision DR-AUTH-01 |
 | **ADR-0012** | [adr/0012-marketing-website-lives-in-website.md](./adr/0012-marketing-website-lives-in-website.md) | Why does the public marketing site live in `website/`? | Accepted | Repository Architecture |
 | **06** | [06-api-and-event-schemas.md](./06-api-and-event-schemas.md) | What are the exact OpenAPI 3.1 REST schemas and Kafka event contracts? | Draft-complete | OpenAPI Contract / Protected Doc |
 | **07** | [07-data-model.md](./07-data-model.md) | Which PostgreSQL tables exist, how is PII isolated, and what is retained? | Draft-complete | Privacy Review / Protected Doc |
