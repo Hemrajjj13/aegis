@@ -1,0 +1,57 @@
+---
+import { siteConfig, isPlaceholder } from '../config/siteConfig';
+const consoleUrl = siteConfig.consoleUrl;
+const productName = siteConfig.productName;
+---
+<header class="sticky top-0 z-40 border-b border-border bg-canvas/80 backdrop-blur">
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+    <a href="#" class="font-semibold tracking-tight">{productName}</a>
+    <nav class="hidden items-center gap-6 md:flex" aria-label="Primary">
+      <a href="#solutions" class="text-sm text-text-muted hover:text-text">Solutions</a>
+      <a href="#features" class="text-sm text-text-muted hover:text-text">Features</a>
+      <a href="#resources" class="text-sm text-text-muted hover:text-text">Resources</a>
+      <a href="#faq" class="text-sm text-text-muted hover:text-text">FAQ</a>
+      <a href="#about" class="text-sm text-text-muted hover:text-text">About</a>
+      <a href="#careers" class="text-sm text-text-muted hover:text-text">Careers</a>
+    </nav>
+    <div class="flex items-center gap-3">
+      <a href={consoleUrl} rel="noopener" class="text-sm text-text-muted hover:text-text">Log in</a>
+      <a href={`mailto:${isPlaceholder(siteConfig.contactEmail) ? siteConfig.contactEmail.value : siteConfig.contactEmail}?subject=${encodeURIComponent('Talk to us about ' + productName)}`} class="rounded-md bg-accent-solid px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover">Talk to us</a>
+      <button id="theme-toggle" type="button" class="rounded-md border border-border px-2 py-1 text-sm" aria-label="Toggle theme">Theme</button>
+      <button id="mobile-menu-btn" type="button" class="md:hidden rounded-md border border-border px-2 py-1 text-sm" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">Menu</button>
+    </div>
+  </div>
+  <div id="mobile-menu" class="hidden border-t border-border md:hidden" role="dialog" aria-modal="true" aria-label="Mobile menu">
+    <nav class="flex flex-col gap-1 px-4 py-3" aria-label="Mobile">
+      <a href="#solutions" class="py-2 text-sm">Solutions</a>
+      <a href="#features" class="py-2 text-sm">Features</a>
+      <a href="#resources" class="py-2 text-sm">Resources</a>
+      <a href="#faq" class="py-2 text-sm">FAQ</a>
+      <a href="#about" class="py-2 text-sm">About</a>
+      <a href="#careers" class="py-2 text-sm">Careers</a>
+    </nav>
+  </div>
+  <script is:inline>
+    (function () {
+      var btn = document.getElementById('mobile-menu-btn');
+      var menu = document.getElementById('mobile-menu');
+      if (!btn || !menu) return;
+      function close() { menu.classList.add('hidden'); btn.setAttribute('aria-expanded', 'false'); }
+      function open() { menu.classList.remove('hidden'); btn.setAttribute('aria-expanded', 'true'); }
+      btn.addEventListener('click', function () { menu.classList.contains('hidden') ? open() : close(); });
+      menu.addEventListener('click', function (e) { if (e.target && e.target.tagName === 'A') close(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    })();
+    (function () {
+      var t = document.getElementById('theme-toggle');
+      if (!t) return;
+      t.addEventListener('click', function () {
+        var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        var next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        document.documentElement.classList.toggle('light', next === 'light');
+        try { localStorage.setItem('theme', next); } catch (e) {}
+      });
+    })();
+  </script>
+</header>

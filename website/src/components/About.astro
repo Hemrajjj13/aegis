@@ -1,0 +1,16 @@
+---
+import { siteConfig, isPlaceholder } from '../config/siteConfig';
+const productName = siteConfig.productName;
+const founderName = isPlaceholder(siteConfig.about.founderName) ? siteConfig.about.founderName.value : String(siteConfig.about.founderName);
+const founderBio = isPlaceholder(siteConfig.about.founderBio) ? siteConfig.about.founderBio.value : String(siteConfig.about.founderBio);
+---
+<section id="about" class="mx-auto max-w-6xl px-4 py-20">
+  <h2 class="text-3xl font-semibold tracking-tight">About</h2>
+  <p class="mt-4 max-w-3xl text-text-muted">
+    {productName} is a real-time, explainable transaction decision engine. It returns approve, decline or review for every payment in milliseconds, records a complete auditable explanation of every decision, and provides a replay tool that compares two rule versions on the same historical dataset before either ships to production.
+  </p>
+  <div class="mt-6 rounded-lg border border-border bg-surface p-6">
+    <p class="font-medium">{founderName}</p>
+    <p class="mt-2 text-sm text-text-muted">{founderBio}</p>
+  </div>
+</section>

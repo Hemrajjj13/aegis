@@ -1,0 +1,33 @@
+---
+import { siteConfig, isPlaceholder } from '../config/siteConfig';
+const productName = siteConfig.productName;
+const email = isPlaceholder(siteConfig.contactEmail) ? siteConfig.contactEmail.value : String(siteConfig.contactEmail);
+const mailto = `mailto:${email}?subject=${encodeURIComponent('Talk to us about ' + productName)}`;
+---
+<section id="hero" class="mx-auto max-w-6xl px-4 py-20">
+  <h1 class="text-4xl font-semibold tracking-tight md:text-5xl">
+    Change fraud rules with confidence by testing them against history before shipping.
+  </h1>
+  <p class="mt-4 max-w-2xl text-lg text-text-muted">
+    A real-time transaction decision engine that returns approve, review or decline with reasons, and lets you replay a rule change against past transactions before it reaches production.
+  </p>
+  <div class="mt-8 flex flex-wrap gap-3">
+    <a href={mailto} class="rounded-md bg-accent-solid px-5 py-3 text-sm font-medium text-white hover:bg-accent-hover">Talk to us</a>
+    <a href="#how-it-works" class="rounded-md border border-border px-5 py-3 text-sm font-medium hover:bg-surface-raised">See how it works</a>
+  </div>
+  <div class="mt-12 rounded-lg border border-border bg-surface p-6">
+    <p class="mb-4 text-xs text-text-muted">Illustrative</p>
+    <svg viewBox="0 0 600 160" class="w-full" role="img" aria-label="Illustrative flow: event to decision to explanation">
+      <rect x="20" y="50" width="120" height="60" rx="8" fill="var(--surface-raised)" stroke="var(--border)" />
+      <text x="80" y="85" text-anchor="middle" fill="var(--text)" font-size="14">Event</text>
+      <line x1="140" y1="80" x2="200" y2="80" stroke="var(--border)" stroke-width="2" />
+      <rect x="200" y="50" width="160" height="60" rx="8" fill="var(--surface-raised)" stroke="var(--border)" />
+      <text x="280" y="75" text-anchor="middle" fill="var(--text)" font-size="14">Decision</text>
+      <text x="280" y="95" text-anchor="middle" fill="var(--text-muted)" font-size="11">approve / review / decline</text>
+      <line x1="360" y1="80" x2="420" y2="80" stroke="var(--border)" stroke-width="2" />
+      <rect x="420" y="50" width="160" height="60" rx="8" fill="var(--surface-raised)" stroke="var(--border)" />
+      <text x="500" y="75" text-anchor="middle" fill="var(--text)" font-size="14">Explanation</text>
+      <text x="500" y="95" text-anchor="middle" fill="var(--text-muted)" font-size="11">reasons + scores</text>
+    </svg>
+  </div>
+</section>
