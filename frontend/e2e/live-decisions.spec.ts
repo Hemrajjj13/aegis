@@ -1,10 +1,76 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page, type APIRequestContext } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { generateSync } from 'otplib';
+
+interface MailboxItem {
+  destination: string;
+  purpose?: string;
+  code?: string;
+}
+
+async function ensureAuthenticatedDeveloper(page: Page, request: APIRequestContext) {
+  await request.post('http://127.0.0.1:8080/dev/mailbox/reset');
+  const runId = Math.random().toString(36).substring(2, 7);
+  const email = `live_${runId}@example.com`;
+  const mobile = `+9196${Math.floor(10000000 + Math.random() * 90000000)}`;
+  const password = 'LivePassword123!@#';
+
+  await page.goto('/signup');
+  await page.locator('#signup-org-name').fill(`Live Test Org ${runId}`);
+  await page.locator('#signup-owner-name').fill(`Live Tester ${runId}`);
+  await page.locator('#signup-email').fill(email);
+  await page.locator('#signup-mobile').fill(mobile);
+  await page.locator('#signup-password').fill(password);
+  await page.locator('#signup-confirm-password').fill(password);
+  await page.getByRole('button', { name: /Next: Mobile Verification/i }).click();
+
+  // Retrieve OTP
+  let otpFound = false;
+  for (let i = 0; i < 20; i++) {
+    const res = await request.get('/dev/mailbox');
+    if (res.ok()) {
+      const items = (await res.json()) as MailboxItem[];
+      const match = items.find((it) => it.destination === mobile && it.purpose === 'SIGNUP_MOBILE_VERIFY');
+      if (match && match.code) {
+        await page.locator('#signup-otp').fill(match.code);
+        otpFound = true;
+        break;
+      }
+    }
+    await page.waitForTimeout(500);
+  }
+  expect(otpFound).toBeTruthy();
+  await page.getByRole('button', { name: /Verify Mobile & Setup 2FA/i }).click();
+
+  // Retrieve TOTP secret & verify
+  const secretInput = page.locator('#manual-totp-key');
+  await expect(secretInput).not.toHaveValue('');
+  const secret = await secretInput.inputValue();
+  const totpCode = generateSync({ secret });
+  await page.locator('#signup-totp-verify').fill(totpCode);
+  await page.getByRole('button', { name: /Complete Registration/i }).click();
+
+  // Login
+  await page.getByRole('button', { name: /Sign In with Master Password/i }).click();
+  await page.locator('#login-identifier').fill(email);
+  await page.locator('#login-password').fill(password);
+  await page.getByRole('button', { name: /Continue/i }).click();
+  await expect(page.locator('#login-totp')).toBeVisible();
+  const loginCode = generateSync({ secret });
+  await page.locator('#login-totp').fill(loginCode);
+  await page.getByRole('button', { name: /Verify and Access/i }).click();
+
+  // Navigate to Live Decisions
+  await page.goto('/decisions');
+  await expect(page.getByRole('heading', { name: 'Live Decisions' })).toBeVisible();
+}
 
 test.describe('Live Decisions Feed E2E Tests', () => {
-  test('submits a transaction via dev form and sees its row within 2 seconds', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
+  test.beforeEach(async ({ page, request }) => {
+    await ensureAuthenticatedDeveloper(page, request);
+  });
 
+  test('submits a transaction via dev form and sees its row within 2 seconds', async ({ page }) => {
     // Wait for the Live Decisions header and connection indicator
     await expect(page.getByRole('heading', { name: 'Live Decisions' })).toBeVisible();
     await expect(page.getByRole('status', { name: /Stream Status/ })).toBeVisible({ timeout: 10000 });
@@ -45,7 +111,6 @@ test.describe('Live Decisions Feed E2E Tests', () => {
   });
 
   test('zero serious or critical accessibility violations in dark theme', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { name: 'Live Decisions' })).toBeVisible();
 
     // Ensure dark theme is active
@@ -67,7 +132,6 @@ test.describe('Live Decisions Feed E2E Tests', () => {
   });
 
   test('zero serious or critical accessibility violations in light theme', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { name: 'Live Decisions' })).toBeVisible();
 
     // Toggle to light theme
