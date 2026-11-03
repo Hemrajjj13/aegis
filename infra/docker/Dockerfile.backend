@@ -1,5 +1,53 @@
-FROM eclipse-temurin:21-jre-alpine
+# Stage 1: Build executable Spring Boot monolithic application
+FROM eclipse-temurin:21-jdk-alpine AS builder
+
+WORKDIR /build
+
+# Copy Gradle wrapper and configuration
+COPY backend/gradle/ backend/gradle/
+COPY backend/gradlew backend/gradlew
+COPY backend/gradle.properties backend/gradle.properties
+COPY backend/settings.gradle.kts backend/settings.gradle.kts
+COPY backend/build.gradle.kts backend/build.gradle.kts
+
+# Copy all backend module sources
+COPY backend/aegis-core/ backend/aegis-core/
+COPY backend/aegis-storage/ backend/aegis-storage/
+COPY backend/aegis-decision-api/ backend/aegis-decision-api/
+COPY backend/aegis-identity/ backend/aegis-identity/
+COPY backend/aegis-rules/ backend/aegis-rules/
+COPY backend/aegis-velocity/ backend/aegis-velocity/
+COPY backend/aegis-replay/ backend/aegis-replay/
+COPY backend/aegis-audit/ backend/aegis-audit/
+COPY backend/aegis-dataset-importer/ backend/aegis-dataset-importer/
+COPY backend/aegis-app/ backend/aegis-app/
+
+# Build production executable JAR (skipping test suite during container packaging)
+RUN chmod +x backend/gradlew && \
+    ./backend/gradlew -p backend :aegis-app:bootJar -x test --no-daemon
+
+# Stage 2: Minimal hardened runtime image
+FROM eclipse-temurin:21-jre-alpine AS runner
+
 WORKDIR /app
-COPY backend/aegis-app/build/libs/aegis-app-*.jar app.jar
+
+# Add dedicated unprivileged system user
+RUN addgroup -S aegisgroup && adduser -S aegisuser -G aegisgroup
+
+# Copy built JAR from builder stage
+COPY --from=builder /build/backend/aegis-app/build/libs/aegis-app-*.jar /app/aegis-app.jar
+
+# Enforce file permissions
+RUN chown -R aegisuser:aegisgroup /app
+
+USER aegisuser
+
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Production JVM container flags:
+# -XX:+UseSerialGC optimizes heap compaction for small container footprints (< 1 GB RAM)
+# -XX:MaxRAMPercentage dynamically bounds heap to container cgroup memory limits
+# -Djava.security.egd avoids entropy starvation on Alpine Linux
+ENV JAVA_OPTS="-XX:+UseSerialGC -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom"
+
+ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/aegis-app.jar"]

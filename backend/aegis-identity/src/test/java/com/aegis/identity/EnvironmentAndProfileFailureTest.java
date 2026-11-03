@@ -30,7 +30,7 @@ class EnvironmentAndProfileFailureTest {
         MockEnvironment env = new MockEnvironment();
         env.setActiveProfiles("tier2");
 
-        DevMailboxController controller = new DevMailboxController(null, env);
+        DevMailboxController controller = new DevMailboxController(null, null, env);
         assertThatThrownBy(controller::validateProfile)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("strictly prohibited in tier2");

@@ -1,76 +1,32 @@
-import { spawn } from 'node:child_process';
-import { readFileSync, unlinkSync } from 'node:fs';
+import { execSync } from 'node:child_process';
+import { writeFileSync, mkdirSync } from 'node:fs';
 
-const CHROME_PATH = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-process.env.CHROME_PATH = CHROME_PATH;
+const pages = [
+  { name: 'home', url: 'http://127.0.0.1:4321/' },
+  { name: 'features', url: 'http://127.0.0.1:4321/features' },
+  { name: 'pricing', url: 'http://127.0.0.1:4321/pricing' },
+  { name: 'docs', url: 'http://127.0.0.1:4321/docs' },
+  { name: 'contact', url: 'http://127.0.0.1:4321/contact' },
+];
 
-async function runLighthouse() {
-  console.log('Starting astro preview...');
-  const preview = spawn('npx', ['astro', 'preview', '--port', '4321'], {
-    cwd: process.cwd(),
-    shell: true,
-    stdio: 'pipe',
-  });
+mkdirSync('.lighthouse-reports', { recursive: true });
 
-  // wait 4 seconds for server to be ready
-  await new Promise((resolve) => setTimeout(resolve, 4000));
+console.log('Running Lighthouse audits across 5 key pages...\n');
+console.log('| Page | Performance | Accessibility | Best Practices | SEO |');
+console.log('| :--- | :---: | :---: | :---: | :---: |');
 
-  async function audit(preset, outFile) {
-    console.log(`Running Lighthouse for ${preset}...`);
-    const args = [
-      'lighthouse',
-      'http://localhost:4321/',
-      '--output=json',
-      `--output-path=${outFile}`,
-      '--chrome-flags="--headless --no-sandbox --disable-gpu"',
-      preset === 'desktop' ? '--preset=desktop' : '',
-    ].filter(Boolean);
-
-    await new Promise((resolve, reject) => {
-      const lh = spawn('npx', args, { shell: true, stdio: 'inherit' });
-      lh.on('close', (code) => {
-        if (code === 0) resolve();
-        else reject(new Error(`Lighthouse exited with code ${code}`));
-      });
-    });
-
-    const result = JSON.parse(readFileSync(outFile, 'utf8'));
-    try { unlinkSync(outFile); } catch { }
-
-    const cats = result.categories;
-    const scores = {
-      performance: Math.round((cats.performance?.score || 0) * 100),
-      accessibility: Math.round((cats.accessibility?.score || 0) * 100),
-      bestPractices: Math.round((cats['best-practices']?.score || 0) * 100),
-      seo: Math.round((cats.seo?.score || 0) * 100),
-    };
-    return scores;
-  }
-
+for (const p of pages) {
+  const outputPath = `.lighthouse-reports/${p.name}.json`;
+  const cmd = `npx lighthouse ${p.url} --output=json --output-path=${outputPath} --chrome-flags="--headless --no-sandbox" --quiet --only-categories=performance,accessibility,best-practices,seo`;
   try {
-    const mobile = await audit('mobile', 'lh-mobile.json');
-    const desktop = await audit('desktop', 'lh-desktop.json');
-
-    console.log('\n========================================');
-    console.log('LIGHTHOUSE RESULTS (single-machine measurement)');
-    console.log('========================================');
-    console.log('Mobile:');
-    console.log(`  Performance:    ${mobile.performance}`);
-    console.log(`  Accessibility:  ${mobile.accessibility}`);
-    console.log(`  Best Practices: ${mobile.bestPractices}`);
-    console.log(`  SEO:            ${mobile.seo}`);
-    console.log('Desktop:');
-    console.log(`  Performance:    ${desktop.performance}`);
-    console.log(`  Accessibility:  ${desktop.accessibility}`);
-    console.log(`  Best Practices: ${desktop.bestPractices}`);
-    console.log(`  SEO:            ${desktop.seo}`);
-    console.log('========================================\n');
-  } finally {
-    preview.kill('SIGTERM');
+    execSync(cmd, { stdio: 'ignore' });
+    const report = JSON.parse(await import('node:fs').then(fs => fs.readFileSync(outputPath, 'utf8')));
+    const perf = Math.round((report.categories.performance?.score || 0) * 100);
+    const a11y = Math.round((report.categories.accessibility?.score || 0) * 100);
+    const bp = Math.round((report.categories['best-practices']?.score || 0) * 100);
+    const seo = Math.round((report.categories.seo?.score || 0) * 100);
+    console.log(`| ${p.name} | ${perf} | ${a11y} | ${bp} | ${seo} |`);
+  } catch (err) {
+    console.error(`Failed to audit ${p.name}:`, err.message);
   }
 }
-
-runLighthouse().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});

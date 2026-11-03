@@ -48,7 +48,7 @@ public class TotpService {
     @PostConstruct
     public void init() {
         boolean isTier0 = isProfileActive("tier0");
-        String envKey = System.getenv("AEGIS_TOTP_ENC_KEY");
+        String envKey = environment != null ? environment.getProperty("AEGIS_TOTP_ENC_KEY") : System.getenv("AEGIS_TOTP_ENC_KEY");
 
         if (envKey != null && !envKey.isBlank()) {
             this.encryptionKey = parseKey(envKey.trim());

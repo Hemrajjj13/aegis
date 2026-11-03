@@ -9,7 +9,11 @@ import { InviteAcceptPage } from './pages/InviteAcceptPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { DecisionsPage } from './pages/DecisionsPage';
 import { NotAvailableYetPage } from './pages/NotAvailableYetPage';
-import { DevMailboxPage } from './pages/DevMailboxPage';
+
+// Dev-only mailbox dynamically loaded strictly during development
+const DevMailboxPage = import.meta.env.DEV
+  ? React.lazy(() => import('./pages/DevMailboxPage').then(m => ({ default: m.DevMailboxPage })))
+  : null;
 
 export const App: React.FC = () => {
   return (
@@ -22,9 +26,16 @@ export const App: React.FC = () => {
           <Route path="/invite/accept" element={<InviteAcceptPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-          {/* Dev-only Mailbox (Tier 0 / Tier 1) */}
-          {import.meta.env.DEV && (
-            <Route path="/dev/mailbox" element={<DevMailboxPage />} />
+          {/* Dev-only Mailbox (Tier 0 / Tier 1, tree-shaken in production) */}
+          {import.meta.env.DEV && DevMailboxPage && (
+            <Route
+              path="/dev/mailbox"
+              element={
+                <React.Suspense fallback={null}>
+                  <DevMailboxPage />
+                </React.Suspense>
+              }
+            />
           )}
 
           {/* Root dynamic redirect */}

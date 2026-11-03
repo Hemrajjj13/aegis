@@ -57,6 +57,7 @@ public class SecurityConfig {
                     "/v1/auth/invite/accept", "/auth/invite/accept",
                     "/v1/auth/password/forgot", "/auth/password/forgot",
                     "/v1/auth/password/reset", "/auth/password/reset",
+                    "/v1/public/**",
                     "/dev/mailbox/**",
                     "/actuator/**",
                     "/v3/api-docs/**",

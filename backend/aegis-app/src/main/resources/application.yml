@@ -1,8 +1,13 @@
 spring:
   application:
     name: aegis-decision-engine
+  config:
+    import:
+      - "optional:file:.env[.properties]"
+      - "optional:file:../.env[.properties]"
+      - "optional:file:backend/.env[.properties]"
   profiles:
-    active: tier0
+    active: ${SPRING_PROFILES_ACTIVE:tier0}
   datasource:
     url: ${AEGIS_PG_URL:jdbc:postgresql://127.0.0.1:5432/aegis}
     username: ${AEGIS_PG_USER:aegis}

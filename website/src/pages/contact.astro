@@ -1,0 +1,145 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/siteConfig';
+
+const apiUrl = siteConfig.apiUrl;
+---
+<BaseLayout
+  title={`Contact Engineering & Sales — ${siteConfig.productName}`}
+  description="Get in touch with the Project Aegis engineering and solutions team for design partner inquiries, pricing, security reports, or technical questions."
+  canonicalPath="/contact"
+>
+  <div class="py-12 md:py-16 px-4 max-w-2xl mx-auto flex flex-col gap-8">
+    <!-- Header -->
+    <div class="flex flex-col gap-3">
+      <span class="text-xs font-mono text-accent uppercase tracking-wider">Direct Inquiries</span>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-text">
+        Contact our team.
+      </h1>
+      <p class="text-xs md:text-sm text-text-muted leading-relaxed">
+        Send a note to our engineering team. Form submissions are dispatched via our backend email service. We typically reply within one business day.
+      </p>
+    </div>
+
+    <!-- Contact Form (Plain HTML - Zero Client JS) -->
+    <form
+      method="POST"
+      action={`${apiUrl}/v1/public/contact`}
+      class="p-6 md:p-8 rounded-lg border border-border bg-surface flex flex-col gap-5 text-xs"
+    >
+      <!-- Honeypot Field for Spam Prevention (Hidden from real users) -->
+      <div class="sr-only" aria-hidden="true">
+        <label for="_hp_company">Do not fill this field if you are human</label>
+        <input
+          type="text"
+          id="_hp_company"
+          name="_hp_company"
+          tabindex="-1"
+          aria-hidden="true"
+          autocomplete="off"
+        />
+      </div>
+
+      <!-- Name Field -->
+      <div class="flex flex-col gap-1.5">
+        <label for="contact-name" class="font-medium text-text">
+          Full Name <span class="text-accent" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="contact-name"
+          name="name"
+          type="text"
+          required
+          maxlength="100"
+          autocomplete="name"
+          placeholder="Jane Doe"
+          class="px-3 py-2 rounded border border-border bg-surface-raised text-text placeholder:text-text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent"
+        />
+      </div>
+
+      <!-- Work Email Field -->
+      <div class="flex flex-col gap-1.5">
+        <label for="contact-email" class="font-medium text-text">
+          Work Email <span class="text-accent" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="contact-email"
+          name="email"
+          type="email"
+          required
+          maxlength="255"
+          autocomplete="email"
+          placeholder="jane@company.com"
+          class="px-3 py-2 rounded border border-border bg-surface-raised text-text placeholder:text-text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent"
+        />
+      </div>
+
+      <!-- Company Field -->
+      <div class="flex flex-col gap-1.5">
+        <label for="contact-company" class="font-medium text-text">
+          Company or Organization <span class="text-text-muted text-[10px]">(Optional)</span>
+        </label>
+        <input
+          id="contact-company"
+          name="company"
+          type="text"
+          maxlength="100"
+          autocomplete="organization"
+          placeholder="Acme Financial Ltd."
+          class="px-3 py-2 rounded border border-border bg-surface-raised text-text placeholder:text-text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent"
+        />
+      </div>
+
+      <!-- Topic Field -->
+      <div class="flex flex-col gap-1.5">
+        <label for="contact-topic" class="font-medium text-text">
+          Inquiry Topic <span class="text-accent" aria-hidden="true">*</span>
+        </label>
+        <select
+          id="contact-topic"
+          name="topic"
+          required
+          class="px-3 py-2 rounded border border-border bg-surface-raised text-text focus:outline-none focus:ring-1 focus:ring-accent"
+        >
+          <option value="General">General Technical Inquiry</option>
+          <option value="Pricing">Deployment Sizing &amp; Pricing</option>
+          <option value="Demo">Architecture Deep Dive / Demo</option>
+          <option value="Security">Security &amp; Vulnerability Disclosure</option>
+          <option value="Careers">Careers &amp; Engineering Roles</option>
+        </select>
+      </div>
+
+      <!-- Message Field -->
+      <div class="flex flex-col gap-1.5">
+        <label for="contact-message" class="font-medium text-text">
+          Message <span class="text-accent" aria-hidden="true">*</span>
+        </label>
+        <textarea
+          id="contact-message"
+          name="message"
+          required
+          rows="5"
+          maxlength="2000"
+          placeholder="Tell us about your transaction throughput, deployment requirements, or technical questions..."
+          class="px-3 py-2 rounded border border-border bg-surface-raised text-text placeholder:text-text-muted/60 focus:outline-none focus:ring-1 focus:ring-accent resize-y"
+        ></textarea>
+        <span class="text-[10px] text-text-muted self-end">Maximum 2,000 characters</span>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="pt-2">
+        <button
+          type="submit"
+          class="w-full py-2.5 px-4 rounded bg-accent-solid hover:bg-accent-hover text-white font-semibold shadow transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
+        >
+          Send Message
+        </button>
+      </div>
+
+      <p class="text-[11px] text-text-muted text-center pt-2">
+        Zero cookies, zero analytics trackers, and zero third-party captcha scripts. Your message is dispatched securely to our team.
+      </p>
+    </form>
+  </div>
+</BaseLayout>
+

@@ -49,6 +49,16 @@ export const DevMailboxPage: React.FC = () => {
       title="Development Simulated Mailbox"
       subtitle="In-memory notification delivery for local development (Tier 0 & Tier 1 only)."
     >
+      <div
+        role="alert"
+        className="p-3 mb-3 rounded bg-amber-950/40 border border-amber-600/40 text-amber-200 text-xs font-mono flex items-center gap-2"
+      >
+        <span className="font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded bg-amber-600/30 border border-amber-500/50">
+          DEV ONLY
+        </span>
+        <span>Simulated mailbox for local development. Not available in production.</span>
+      </div>
+
       <div className="flex justify-between items-center pb-2 border-b border-border">
         <span className="text-xs font-mono text-text-muted">
           Active Messages: {items.length}

@@ -1,57 +1,106 @@
 ---
-import { siteConfig, isPlaceholder } from '../config/siteConfig';
+import { siteConfig } from '../config/siteConfig';
+
+interface Props {
+  currentPath?: string;
+}
+
+const { currentPath = '/' } = Astro.props;
 const consoleUrl = siteConfig.consoleUrl;
 const productName = siteConfig.productName;
+
+const navLinks = [
+  { href: '/features', label: 'Features' },
+  { href: '/how-it-works', label: 'How it works' },
+  { href: '/security', label: 'Security' },
+  { href: '/pricing', label: 'Pricing' },
+  { href: '/docs', label: 'Docs' },
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+];
+
+const isCurrent = (href: string) => {
+  if (href === '/') return currentPath === '/';
+  return currentPath.startsWith(href);
+};
 ---
-<header class="sticky top-0 z-40 border-b border-border bg-canvas/80 backdrop-blur">
+<header class="sticky top-0 z-40 border-b border-border bg-canvas/90 backdrop-blur select-none">
   <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-    <a href="#" class="font-semibold tracking-tight">{productName}</a>
+    <!-- Brand Wordmark -->
+    <a href="/" class="flex items-center gap-2 font-bold tracking-wider font-mono text-text hover:text-accent transition-colors">
+      <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <span>{productName}</span>
+    </a>
+
+    <!-- Desktop Primary Nav -->
     <nav class="hidden items-center gap-6 md:flex" aria-label="Primary">
-      <a href="#solutions" class="text-sm text-text-muted hover:text-text">Solutions</a>
-      <a href="#features" class="text-sm text-text-muted hover:text-text">Features</a>
-      <a href="#resources" class="text-sm text-text-muted hover:text-text">Resources</a>
-      <a href="#faq" class="text-sm text-text-muted hover:text-text">FAQ</a>
-      <a href="#about" class="text-sm text-text-muted hover:text-text">About</a>
-      <a href="#careers" class="text-sm text-text-muted hover:text-text">Careers</a>
+      {navLinks.map((item) => (
+        <a
+          href={item.href}
+          aria-current={isCurrent(item.href) ? 'page' : undefined}
+          class={`text-xs font-medium transition-colors ${
+            isCurrent(item.href)
+              ? 'text-accent font-semibold'
+              : 'text-text-muted hover:text-text'
+          }`}
+        >
+          {item.label}
+        </a>
+      ))}
     </nav>
+
+    <!-- Desktop Actions & Mobile Disclosure -->
     <div class="flex items-center gap-3">
-      <a href={consoleUrl} rel="noopener" class="text-sm text-text-muted hover:text-text">Log in</a>
-      <a href={`mailto:${isPlaceholder(siteConfig.contactEmail) ? siteConfig.contactEmail.value : siteConfig.contactEmail}?subject=${encodeURIComponent('Talk to us about ' + productName)}`} class="rounded-md bg-accent-solid px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover">Talk to us</a>
-      <button id="theme-toggle" type="button" class="rounded-md border border-border px-2 py-1 text-sm" aria-label="Toggle theme">Theme</button>
-      <button id="mobile-menu-btn" type="button" class="md:hidden rounded-md border border-border px-2 py-1 text-sm" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">Menu</button>
+      <a
+        href={`${consoleUrl}/login`}
+        class="hidden sm:inline-block text-xs font-medium text-text-muted hover:text-text px-2 py-1 transition-colors"
+      >
+        Log in
+      </a>
+      <a
+        href={`${consoleUrl}/signup`}
+        class="rounded border border-accent bg-accent-solid hover:bg-accent-hover text-white px-3 py-1.5 text-xs font-semibold shadow transition-colors"
+      >
+        Get started
+      </a>
+
+      <!-- Zero-JS Accessible Mobile Menu via <details> -->
+      <details class="md:hidden relative group">
+        <summary
+          class="flex items-center justify-center p-1.5 rounded border border-border bg-surface text-text hover:bg-surface-raised cursor-pointer list-none focus:outline-none focus:ring-1 focus:ring-accent"
+          aria-label="Toggle navigation menu"
+        >
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </summary>
+        <div class="absolute right-0 mt-2 w-48 rounded-md border border-border bg-surface shadow-xl py-2 px-1 flex flex-col gap-1 z-50">
+          {navLinks.map((item) => (
+            <a
+              href={item.href}
+              aria-current={isCurrent(item.href) ? 'page' : undefined}
+              class={`px-3 py-2 text-xs rounded transition-colors ${
+                isCurrent(item.href)
+                  ? 'bg-accent/10 text-accent font-semibold'
+                  : 'text-text hover:bg-surface-raised'
+              }`}
+            >
+              {item.label}
+            </a>
+          ))}
+          <div class="border-t border-border my-1"></div>
+          <a
+            href={`${consoleUrl}/login`}
+            class="px-3 py-2 text-xs text-text-muted hover:text-text rounded hover:bg-surface-raised transition-colors"
+          >
+            Log in to Console
+          </a>
+        </div>
+      </details>
     </div>
   </div>
-  <div id="mobile-menu" class="hidden border-t border-border md:hidden" role="dialog" aria-modal="true" aria-label="Mobile menu">
-    <nav class="flex flex-col gap-1 px-4 py-3" aria-label="Mobile">
-      <a href="#solutions" class="py-2 text-sm">Solutions</a>
-      <a href="#features" class="py-2 text-sm">Features</a>
-      <a href="#resources" class="py-2 text-sm">Resources</a>
-      <a href="#faq" class="py-2 text-sm">FAQ</a>
-      <a href="#about" class="py-2 text-sm">About</a>
-      <a href="#careers" class="py-2 text-sm">Careers</a>
-    </nav>
-  </div>
-  <script is:inline>
-    (function () {
-      var btn = document.getElementById('mobile-menu-btn');
-      var menu = document.getElementById('mobile-menu');
-      if (!btn || !menu) return;
-      function close() { menu.classList.add('hidden'); btn.setAttribute('aria-expanded', 'false'); }
-      function open() { menu.classList.remove('hidden'); btn.setAttribute('aria-expanded', 'true'); }
-      btn.addEventListener('click', function () { menu.classList.contains('hidden') ? open() : close(); });
-      menu.addEventListener('click', function (e) { if (e.target && e.target.tagName === 'A') close(); });
-      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
-    })();
-    (function () {
-      var t = document.getElementById('theme-toggle');
-      if (!t) return;
-      t.addEventListener('click', function () {
-        var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-        var next = cur === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        document.documentElement.classList.toggle('light', next === 'light');
-        try { localStorage.setItem('theme', next); } catch (e) {}
-      });
-    })();
-  </script>
 </header>

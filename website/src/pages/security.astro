@@ -1,0 +1,115 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/siteConfig';
+
+const securityEmail = siteConfig.securityEmail;
+---
+<BaseLayout
+  title={`Security Controls & Data Architecture — ${siteConfig.productName}`}
+  description="Security architecture of Project Aegis: Argon2id password hashing, mandatory AES-256-GCM TOTP, refresh token rotation, PostgreSQL Row-Level Security, and responsible disclosure."
+  canonicalPath="/security"
+>
+  <div class="py-12 md:py-16 px-4 max-w-5xl mx-auto flex flex-col gap-12">
+    <!-- Header -->
+    <div class="flex flex-col gap-3">
+      <span class="text-xs font-mono text-accent uppercase tracking-wider">Security Architecture</span>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-text">
+        Defensive security controls designed for payment infrastructure.
+      </h1>
+      <p class="text-xs md:text-sm text-text-muted max-w-2xl leading-relaxed">
+        Aegis is architected around least privilege, defensive cryptographic choices, and verifiable multi-tenant boundaries. All implementations are inspectable in our open architecture specifications.
+      </p>
+    </div>
+
+    <!-- Security Controls Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-text-muted">
+      <!-- 1. Password Hashing -->
+      <section class="p-6 rounded-lg border border-border bg-surface flex flex-col gap-3">
+        <h2 class="text-sm font-semibold text-text font-mono">1. Argon2id Password Hashing</h2>
+        <p class="leading-relaxed">
+          Passwords are hashed using BouncyCastle's Argon2id implementation with parameters m = 65,536 KiB (64 MiB), t = 3 iterations, and p = 4 parallelism threads.
+        </p>
+        <p class="leading-relaxed">
+          To prevent timing-based user enumeration, failed account lookups run an equalized dummy hash computation so response times remain indistinguishable regardless of account existence.
+        </p>
+      </section>
+
+      <!-- 2. Mandatory TOTP -->
+      <section class="p-6 rounded-lg border border-border bg-surface flex flex-col gap-3">
+        <h2 class="text-sm font-semibold text-text font-mono">2. Mandatory RFC 6238 Two-Factor Auth</h2>
+        <p class="leading-relaxed">
+          Every operator account requires multi-factor authentication. Base32 TOTP secrets are encrypted at rest using AES-256-GCM with a unique 12-byte initialization vector per record.
+        </p>
+        <p class="leading-relaxed">
+          Ten single-use recovery codes are generated during enrollment and stored exclusively as SHA-256 hashes. Plaintext recovery codes are never stored on disk or in database columns.
+        </p>
+      </section>
+
+      <!-- 3. Session Lifecycle & Token Rotation -->
+      <section class="p-6 rounded-lg border border-border bg-surface flex flex-col gap-3">
+        <h2 class="text-sm font-semibold text-text font-mono">3. Token Rotation &amp; Reuse Detection</h2>
+        <p class="leading-relaxed">
+          Console sessions issue 15-minute RS256 JWT access tokens stored strictly in browser memory. Tokens are never written to <code>localStorage</code> or <code>sessionStorage</code>.
+        </p>
+        <p class="leading-relaxed">
+          Refresh tokens are stored in <code>HttpOnly; Secure; SameSite=Strict; Path=/v1/auth</code> cookies. Refresh requests require an explicit <code>X-Aegis-CSRF: 1</code> header. Replaying a spent refresh token triggers automatic revocation of the entire session hierarchy.
+        </p>
+      </section>
+
+      <!-- 4. Row-Level Security -->
+      <section id="tenant-isolation" class="p-6 rounded-lg border border-border bg-surface flex flex-col gap-3">
+        <h2 class="text-sm font-semibold text-text font-mono">4. PostgreSQL Row-Level Security</h2>
+        <p class="leading-relaxed">
+          All multi-tenant tables enforce <code>ENABLE ROW LEVEL SECURITY</code> and <code>FORCE ROW LEVEL SECURITY</code>. Queries execute under the application role <code>app_auth_user</code> which has <code>NOBYPASSRLS</code>.
+        </p>
+        <p class="leading-relaxed">
+          Tenant context is set per database transaction using <code>SET LOCAL app.current_tenant_id = ?</code>, validated directly against the cryptographically verified JWT claim.
+        </p>
+      </section>
+
+      <!-- 5. Zero PAN Invariant -->
+      <section class="p-6 rounded-lg border border-border bg-surface flex flex-col gap-3">
+        <h2 class="text-sm font-semibold text-text font-mono">5. Zero PAN Storage Invariant</h2>
+        <p class="leading-relaxed">
+          Aegis never accepts or stores unmasked Primary Account Numbers (PANs). All payment events require payment network card tokens (e.g. <code>tok_...</code>).
+        </p>
+        <p class="leading-relaxed">
+          Free-text input parameters pass through a Luhn scanning validation filter. Any transaction containing a Luhn-valid 13-to-19 digit card number is rejected with HTTP 400.
+        </p>
+      </section>
+
+      <!-- 6. Cryptographic Audit Sealing -->
+      <section class="p-6 rounded-lg border border-border bg-surface flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-text font-mono">6. Cryptographic Audit Sealing</h2>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded border border-border bg-surface-raised text-text-muted">Planned (Milestone M9)</span>
+        </div>
+        <p class="leading-relaxed">
+          Audit records in <code>audit_management_events</code> record administrative modifications with SHA-256 hash chains.
+        </p>
+        <p class="leading-relaxed">
+          The planned <code>AuditSealer</code> task periodically computes Merkle tree roots across transaction batches to provide cryptographic proof against retroactive database modification.
+        </p>
+      </section>
+    </div>
+
+    <!-- Responsible Disclosure -->
+    <section class="p-6 md:p-8 rounded-lg border border-border bg-surface flex flex-col gap-4">
+      <h2 class="text-lg font-bold text-text">Responsible Vulnerability Disclosure</h2>
+      <p class="text-xs text-text-muted leading-relaxed">
+        We welcome security reports from independent security researchers, operators, and engineers. If you believe you have discovered a vulnerability in Project Aegis or its reference deployment topology, please report it directly to our security address.
+      </p>
+      <div class="p-4 rounded border border-border bg-surface-raised flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
+        <div>
+          <span class="text-text-muted">Security Contact: </span>
+          <a href={`mailto:${securityEmail}`} class="text-accent hover:underline">{securityEmail}</a>
+        </div>
+        <span class="text-text-muted">GPG Key Available Upon Request</span>
+      </div>
+      <p class="text-[11px] text-text-muted leading-relaxed">
+        Please do not open public GitHub issues for security vulnerabilities. We acknowledge reports within 48 hours and coordinate timeline disclosures in accordance with responsible industry practices.
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+

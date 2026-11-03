@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mkdirSync } from 'node:fs';
 
-const anchors = ['solutions', 'features', 'how-it-works', 'resources', 'faq', 'about', 'careers'];
+const pages = ['/', '/features', '/how-it-works', '/security', '/pricing', '/docs', '/about', '/contact'];
 
 test.beforeAll(() => {
   try {
@@ -10,10 +10,11 @@ test.beforeAll(() => {
   } catch { }
 });
 
-test('nav anchor targets exist', async ({ page }) => {
+test('header navigation links exist and point to valid routes', async ({ page }) => {
   await page.goto('/');
-  for (const a of anchors) {
-    await expect(page.locator('#' + a)).toHaveCount(1);
+  for (const p of ['/features', '/how-it-works', '/security', '/pricing', '/docs', '/about', '/contact']) {
+    const link = page.locator(`header nav a[href="${p}"]`);
+    await expect(link).toBeAttached();
   }
 });
 
@@ -24,26 +25,22 @@ test('skip link focuses main', async ({ page }) => {
   await expect(skip).toBeFocused();
 });
 
-test('mobile menu at 375px opens and closes on Escape', async ({ page }) => {
+test('mobile navigation details disclosure works at 375px without javascript', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto('/');
-  const btn = page.getByRole('button', { name: 'Open menu' });
-  await btn.click();
-  const menu = page.getByRole('dialog', { name: 'Mobile menu' });
-  await expect(menu).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(menu).toBeHidden();
-});
+  const details = page.locator('header details');
+  await expect(details).toBeVisible();
 
-test('mobile menu closes on link click', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 800 });
-  await page.goto('/');
-  const btn = page.getByRole('button', { name: 'Open menu' });
-  await btn.click();
-  const menu = page.getByRole('dialog', { name: 'Mobile menu' });
-  await expect(menu).toBeVisible();
-  await menu.getByText('Features').click();
-  await expect(menu).toBeHidden();
+  // Initially closed
+  await expect(details).not.toHaveAttribute('open', '');
+
+  // Click summary
+  await page.locator('header details summary').click();
+  await expect(details).toHaveAttribute('open', '');
+
+  // Links inside details are accessible
+  const featuresLink = details.locator('a[href="/features"]');
+  await expect(featuresLink).toBeVisible();
 });
 
 test('works at 320px with no horizontal scroll', async ({ page }) => {
@@ -56,22 +53,29 @@ test('works at 320px with no horizontal scroll', async ({ page }) => {
 
 for (const theme of ['light', 'dark'] as const) {
   for (const width of [375, 1280] as const) {
-    test(`axe ${theme} ${width}`, async ({ page }) => {
+    test(`axe ${theme} ${width} on home`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
       await page.goto('/');
       await page.evaluate((t) => {
         document.documentElement.setAttribute('data-theme', t);
         document.documentElement.classList.toggle('light', t === 'light');
-        try { localStorage.setItem('theme', t); } catch (e) { }
       }, theme);
-      await page.reload();
-      const results = await new AxeBuilder({ page }).analyze();
+      const results = await new AxeBuilder({ page: page as any }).analyze();
       const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
       expect(serious).toEqual([]);
       await page.screenshot({ path: `.screens/home-${theme}-${width}.png`, fullPage: true });
     });
   }
 }
+
+test('axe accessibility across all marketing pages', async ({ page }) => {
+  for (const p of pages) {
+    await page.goto(p);
+    const results = await new AxeBuilder({ page: page as any }).analyze();
+    const serious = results.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
+    expect(serious).toEqual([]);
+  }
+});
 
 test('no cross-origin requests, no cookies, no console errors', async ({ page, baseURL }) => {
   const allowedOrigin = new URL(baseURL || 'http://localhost:4321').origin;
@@ -91,4 +95,23 @@ test('no cross-origin requests, no cookies, no console errors', async ({ page, b
   const cookies = await page.context().cookies();
   expect(cookies).toEqual([]);
   expect(consoleErrors).toEqual([]);
+});
+
+test('contact form has required attributes, honeypot, and zero client JS', async ({ page }) => {
+  await page.goto('/contact');
+  const form = page.locator('form[action*="/v1/public/contact"]');
+  await expect(form).toBeAttached();
+  await expect(form).toHaveAttribute('method', /post/i);
+
+  // Verify fields
+  await expect(page.locator('input[name="name"]')).toHaveAttribute('required', '');
+  await expect(page.locator('input[name="email"]')).toHaveAttribute('required', '');
+  await expect(page.locator('select[name="topic"]')).toHaveAttribute('required', '');
+  await expect(page.locator('textarea[name="message"]')).toHaveAttribute('required', '');
+
+  // Verify honeypot field is visually hidden and aria-hidden
+  const honeypot = page.locator('input[name="_hp_company"]');
+  await expect(honeypot).toBeAttached();
+  await expect(honeypot).toHaveAttribute('tabindex', '-1');
+  await expect(honeypot).toHaveAttribute('aria-hidden', 'true');
 });

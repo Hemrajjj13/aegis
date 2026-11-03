@@ -37,9 +37,9 @@ public class LocalMailboxNotificationService implements NotificationService {
     public void validateProfile() {
         if (environment != null && environment.getActiveProfiles() != null) {
             for (String profile : environment.getActiveProfiles()) {
-                if ("tier2".equalsIgnoreCase(profile)) {
+                if ("tier2".equalsIgnoreCase(profile) || "prod".equalsIgnoreCase(profile)) {
                     throw new IllegalStateException(
-                        "FATAL: LocalMailboxNotificationService is strictly prohibited under tier2 deployment profiles."
+                        "FATAL: LocalMailboxNotificationService is strictly prohibited under tier2 or prod deployment profiles."
                     );
                 }
             }
@@ -78,6 +78,26 @@ public class LocalMailboxNotificationService implements NotificationService {
             [LOCAL-MAILBOX-DEV] INVITE LINK: {}
             [LOCAL-MAILBOX-DEV] ======================================================""",
                 email, tenantName, role, inviteLink);
+    }
+
+    @Override
+    public void sendContactMessage(String fromName, String fromEmail, String company, String topic, String message) {
+        String purpose = "CONTACT_" + topic;
+        String preview = (message != null && message.length() > 60) ? message.substring(0, 60) + "..." : message;
+        MailboxMessage msg = new MailboxMessage("CONTACT", fromEmail, topic, null, purpose + ": " + preview, Instant.now());
+        messages.addFirst(msg);
+        while (messages.size() > 100) {
+            messages.removeLast();
+        }
+
+        log.info("""
+            [LOCAL-MAILBOX-DEV] ======================================================
+            [LOCAL-MAILBOX-DEV] INBOUND CONTACT MESSAGE DISPATCHED
+            [LOCAL-MAILBOX-DEV] FROM: {} ({}) | COMPANY: {}
+            [LOCAL-MAILBOX-DEV] TOPIC: {}
+            [LOCAL-MAILBOX-DEV] MESSAGE PREVIEW: {}
+            [LOCAL-MAILBOX-DEV] ======================================================""",
+                fromName, fromEmail, (company != null ? company : "N/A"), topic, preview);
     }
 
     public List<MailboxMessage> getAllMessages() {

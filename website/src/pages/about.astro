@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/siteConfig';
+---
+<BaseLayout
+  title={`About & Engineering Principles — ${siteConfig.productName}`}
+  description="Engineering principles, architectural standards, and team culture behind Project Aegis: determinism, open verification, and defensible systems."
+  canonicalPath="/about"
+>
+  <div class="py-12 md:py-16 px-4 max-w-5xl mx-auto flex flex-col gap-12">
+    <!-- Header -->
+    <div class="flex flex-col gap-3">
+      <span class="text-xs font-mono text-accent uppercase tracking-wider">About Project Aegis</span>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-text">
+        Engineering software that sits directly in financial flows.
+      </h1>
+      <p class="text-xs md:text-sm text-text-muted max-w-2xl leading-relaxed">
+        Project Aegis is built for payment switches, fintech issuers, and acquiring gateways. Because bugs or non-deterministic state directly cause financial loss, our engineering process prioritizes formal specification and verification over speed of prototyping.
+      </p>
+    </div>
+
+    <!-- Core Engineering Principles -->
+    <div class="space-y-6">
+      <h2 class="text-lg font-bold text-text">Engineering Principles</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-text-muted">
+        <div class="p-5 rounded-lg border border-border bg-surface flex flex-col gap-2">
+          <h3 class="font-semibold text-text font-mono">1. Pure Determinism</h3>
+          <p class="leading-relaxed">
+            The decision engine evaluates transactions as pure functions of input event, active ruleset, and injected state. We never allow <code>System.currentTimeMillis()</code> or unseeded random sources in the core evaluation module.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-lg border border-border bg-surface flex flex-col gap-2">
+          <h3 class="font-semibold text-text font-mono">2. Zero Proprietary Lock-In</h3>
+          <p class="leading-relaxed">
+            Our schemas, ruleset DSL (Google CEL), OpenAPI definitions, and PostgreSQL migrations are open and documented. You can run Aegis entirely on open-source dependencies (Postgres, Redis, Kafka).
+          </p>
+        </div>
+
+        <div class="p-5 rounded-lg border border-border bg-surface flex flex-col gap-2">
+          <h3 class="font-semibold text-text font-mono">3. Documented Assumptions</h3>
+          <p class="leading-relaxed">
+            We do not make unverified performance or compliance claims. Latency numbers cited in our documentation reflect actual measurements on recorded hardware configurations.
+          </p>
+        </div>
+
+        <div class="p-5 rounded-lg border border-border bg-surface flex flex-col gap-2">
+          <h3 class="font-semibold text-text font-mono">4. Test-First Rigor</h3>
+          <p class="leading-relaxed">
+            Every feature or bug fix requires automated reproduction before code changes. We use real Testcontainers for database, Lua, and Kafka interactions rather than in-memory mocks.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Careers Section -->
+    <section id="careers" class="p-6 md:p-8 rounded-lg border border-border bg-surface flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-bold text-text font-mono">Work With Us</h2>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded border border-accent/30 bg-accent/10 text-accent font-semibold">Remote / India &amp; Global</span>
+      </div>
+      <p class="text-xs text-text-muted leading-relaxed">
+        We are building a distributed team of systems engineers, distributed database practitioners, and payment risk specialists. If you value deterministic architectures, rigorous test coverage, and clean open APIs, reach out to us.
+      </p>
+      <div class="pt-2">
+        <a
+          href="/contact?topic=Careers"
+          class="inline-flex py-2 px-4 rounded bg-accent-solid hover:bg-accent-hover text-white text-xs font-semibold shadow transition-colors"
+        >
+          View Open Engineering Inquiries
+        </a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+

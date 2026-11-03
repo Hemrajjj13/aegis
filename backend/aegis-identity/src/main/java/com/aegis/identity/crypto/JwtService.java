@@ -59,8 +59,8 @@ public class JwtService {
         boolean isTier1 = isProfileActive("tier1");
         boolean isTier2 = isProfileActive("tier2");
 
-        String privEnv = System.getenv("AEGIS_JWT_PRIVATE_KEY");
-        String pubEnv = System.getenv("AEGIS_JWT_PUBLIC_KEY");
+        String privEnv = environment != null ? environment.getProperty("AEGIS_JWT_PRIVATE_KEY") : System.getenv("AEGIS_JWT_PRIVATE_KEY");
+        String pubEnv = environment != null ? environment.getProperty("AEGIS_JWT_PUBLIC_KEY") : System.getenv("AEGIS_JWT_PUBLIC_KEY");
 
         if (privEnv != null && !privEnv.isBlank() && pubEnv != null && !pubEnv.isBlank()) {
             loadKeysFromStrings(privEnv, pubEnv);

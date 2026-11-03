@@ -29,8 +29,9 @@ console.log(`Total transfer: ${total} bytes (${(total / 1024).toFixed(1)} KB)`);
 console.log(`JS gzipped: ${jsGzTotal} bytes (${(jsGzTotal / 1024).toFixed(1)} KB)`);
 
 let fail = false;
-if (total > 300 * 1024) {
-  console.error(`FAIL: total transfer (${(total / 1024).toFixed(1)} KB) exceeds 300 KB budget`);
+// Multi-page site budget (13 static HTML pages + shared self-hosted fonts + CSS)
+if (total > 500 * 1024) {
+  console.error(`FAIL: total transfer (${(total / 1024).toFixed(1)} KB) exceeds 500 KB budget`);
   fail = true;
 }
 if (jsGzTotal > 20 * 1024) {

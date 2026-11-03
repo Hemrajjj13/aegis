@@ -1,27 +1,197 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Header from '../components/Header.astro';
-import Hero from '../components/Hero.astro';
-import Solutions from '../components/Solutions.astro';
-import Features from '../components/Features.astro';
-import HowItWorks from '../components/HowItWorks.astro';
-import Resources from '../components/Resources.astro';
-import FAQ from '../components/FAQ.astro';
-import About from '../components/About.astro';
-import Careers from '../components/Careers.astro';
-import Footer from '../components/Footer.astro';
+import { siteConfig } from '../config/siteConfig';
+
+const consoleUrl = siteConfig.consoleUrl;
 ---
-<BaseLayout>
-  <Header />
-  <main id="main">
-    <Hero />
-    <Solutions />
-    <Features />
-    <HowItWorks />
-    <Resources />
-    <FAQ />
-    <About />
-    <Careers />
-  </main>
-  <Footer />
+<BaseLayout
+  title={`${siteConfig.productName} — Deterministic Transaction Decision Engine`}
+  description="Real-time transaction decisions with sub-10ms latency and deterministic backtesting before production deployment."
+  canonicalPath="/"
+>
+  <!-- Hero Section -->
+  <section class="py-16 md:py-24 px-4 max-w-6xl mx-auto flex flex-col items-center text-center gap-6">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded border border-border bg-surface text-text-muted text-xs font-mono">
+      <span class="w-2 h-2 rounded-full bg-approve animate-pulse" aria-hidden="true"></span>
+      <span>Deterministic Decision Engine</span>
+    </div>
+
+    <h1 class="text-3xl md:text-5xl font-bold tracking-tight text-text max-w-3xl leading-tight">
+      Change fraud rules with confidence by testing them against historical transactions.
+    </h1>
+
+    <p class="text-sm md:text-base text-text-muted max-w-2xl leading-relaxed">
+      Aegis evaluates payment events in real time, persists decisions atomically, and lets risk engineers replay proposed rule changes over past transaction logs before deploying.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-3 mt-4">
+      <a
+        href={`${consoleUrl}/signup`}
+        class="py-2.5 px-5 bg-accent-solid hover:bg-accent-hover text-white text-xs font-semibold rounded shadow transition-colors"
+      >
+        Open Developer Account
+      </a>
+      <a
+        href="/how-it-works"
+        class="py-2.5 px-5 border border-border bg-surface hover:bg-surface-raised text-text text-xs font-semibold rounded transition-colors"
+      >
+        How the Pipeline Works
+      </a>
+    </div>
+
+    <!-- Inline Architectural Illustration SVG -->
+    <div class="w-full max-w-3xl mt-8 p-6 rounded-lg border border-border bg-surface/50">
+      <svg class="w-full h-auto" viewBox="0 0 760 180" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Architecture diagram from payment ingest to live decision stream">
+        <rect x="10" y="40" width="130" height="100" rx="6" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+        <text x="75" y="75" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">Payment Ingest</text>
+        <text x="75" y="95" fill="#a1a1aa" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">POST /v1/decisions</text>
+        <text x="75" y="115" fill="#a1a1aa" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">Luhn PAN filter</text>
+
+        <path d="M140 90 H180" stroke="#6366f1" stroke-width="2" stroke-dasharray="4 4"/>
+        <polygon points="180,90 174,86 174,94" fill="#6366f1"/>
+
+        <rect x="185" y="40" width="140" height="100" rx="6" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+        <text x="255" y="75" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">Dual-Schema Velocity</text>
+        <text x="255" y="95" fill="#a1a1aa" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">Redis Sorted Sets</text>
+        <text x="255" y="115" fill="#a1a1aa" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">Sliding Window</text>
+
+        <path d="M325 90 H365" stroke="#6366f1" stroke-width="2" stroke-dasharray="4 4"/>
+        <polygon points="365,90 359,86 359,94" fill="#6366f1"/>
+
+        <rect x="370" y="40" width="160" height="100" rx="6" fill="#18181b" stroke="#6366f1" stroke-width="1.5"/>
+        <text x="450" y="75" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">Deterministic Engine</text>
+        <text x="450" y="95" fill="#a1a1aa" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">CEL Expression Rules</text>
+        <text x="450" y="115" fill="#a1a1aa" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">EventClock Injection</text>
+
+        <path d="M530 90 H570" stroke="#6366f1" stroke-width="2" stroke-dasharray="4 4"/>
+        <polygon points="570,90 564,86 564,94" fill="#6366f1"/>
+
+        <rect x="575" y="40" width="175" height="100" rx="6" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+        <text x="662" y="75" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">Atomic Output</text>
+        <text x="662" y="95" fill="#a1a1aa" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">Postgres RLS Ledger</text>
+        <text x="662" y="115" fill="#a1a1aa" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">GET /v1/events/stream</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Four Solution Cards -->
+  <section class="py-12 px-4 max-w-6xl mx-auto border-t border-border">
+    <div class="mb-8">
+      <h2 class="text-xl font-bold text-text">Solutions</h2>
+      <p class="text-xs text-text-muted mt-1">Built for high-volume payment operators needing deterministic outcomes.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="p-6 rounded-lg border border-border bg-surface flex flex-col justify-between gap-4">
+        <div>
+          <h3 class="text-sm font-semibold text-text">Real-Time In-Flow Decisions</h3>
+          <p class="text-xs text-text-muted mt-2 leading-relaxed">
+            Evaluate authorization requests synchronously in the payment path. Receive an explicit APPROVE, DECLINE, or REVIEW decision with individual rule scores and latency metrics.
+          </p>
+        </div>
+        <a href="/features#real-time-decisions" class="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1">
+          Read feature specs →
+        </a>
+      </div>
+
+      <div class="p-6 rounded-lg border border-border bg-surface flex flex-col justify-between gap-4">
+        <div>
+          <h3 class="text-sm font-semibold text-text">Deterministic Backtesting & Replay</h3>
+          <p class="text-xs text-text-muted mt-2 leading-relaxed">
+            Eliminate fear of breaking payment volume. Replay historical transaction logs against draft rule candidates to compute exact false-positive and false-negative differences.
+          </p>
+        </div>
+        <a href="/features#deterministic-backtesting" class="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1">
+          Explore replay engine →
+        </a>
+      </div>
+
+      <div class="p-6 rounded-lg border border-border bg-surface flex flex-col justify-between gap-4">
+        <div>
+          <h3 class="text-sm font-semibold text-text">Multi-Tenant Isolation via RLS</h3>
+          <p class="text-xs text-text-muted mt-2 leading-relaxed">
+            Every database query runs under PostgreSQL Row-Level Security with FORCE ROW LEVEL SECURITY. Tenant boundaries are cryptographically bound to session JWT claims.
+          </p>
+        </div>
+        <a href="/security#tenant-isolation" class="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1">
+          Review security model →
+        </a>
+      </div>
+
+      <div class="p-6 rounded-lg border border-border bg-surface flex flex-col justify-between gap-4">
+        <div>
+          <h3 class="text-sm font-semibold text-text">Developer-First REST & SSE</h3>
+          <p class="text-xs text-text-muted mt-2 leading-relaxed">
+            Integrate via standard HTTP POST and consume live operational feeds over Server-Sent Events. Strict OpenAPI contract conformance with zero hidden proprietary protocols.
+          </p>
+        </div>
+        <a href="/docs" class="text-xs font-semibold text-accent hover:underline inline-flex items-center gap-1">
+          View API documentation →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Capability Highlights -->
+  <section class="py-12 px-4 max-w-6xl mx-auto border-t border-border">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+      <div>
+        <h2 class="text-xl font-bold text-text">Engine Capabilities</h2>
+        <p class="text-xs text-text-muted mt-1">Directly measured on local development hardware and documented benchmarks.</p>
+      </div>
+      <a href="/features" class="text-xs font-semibold text-accent hover:underline">
+        View all 6 capabilities →
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div class="p-5 rounded-lg border border-border bg-surface">
+        <span class="text-xs font-mono text-accent">01 / LATENCY</span>
+        <h3 class="text-sm font-semibold text-text mt-2">Sub-10ms Target</h3>
+        <p class="text-xs text-text-muted mt-2 leading-relaxed">
+          Designed for minimal overhead. Evaluates rules in memory using pre-compiled CEL AST structures.
+        </p>
+      </div>
+
+      <div class="p-5 rounded-lg border border-border bg-surface">
+        <span class="text-xs font-mono text-accent">02 / REPLAY</span>
+        <h3 class="text-sm font-semibold text-text mt-2">Pure Determinism</h3>
+        <p class="text-xs text-text-muted mt-2 leading-relaxed">
+          Zero system clock lookups in the evaluation core. All time calculations resolve via an injected EventClock.
+        </p>
+      </div>
+
+      <div class="p-5 rounded-lg border border-border bg-surface">
+        <span class="text-xs font-mono text-accent">03 / VELOCITY</span>
+        <h3 class="text-sm font-semibold text-text mt-2">Sliding Windows</h3>
+        <p class="text-xs text-text-muted mt-2 leading-relaxed">
+          Sliding-window velocity counters with deduplicated transaction IDs backed by Redis sorted sets.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action -->
+  <section class="py-16 px-4 max-w-6xl mx-auto border-t border-border">
+    <div class="p-8 md:p-12 rounded-lg border border-border bg-surface text-center flex flex-col items-center gap-4">
+      <h2 class="text-2xl font-bold text-text">Ready to integrate Aegis?</h2>
+      <p class="text-xs md:text-sm text-text-muted max-w-xl leading-relaxed">
+        Test our decision API locally with Tier 0 Docker infrastructure or request design partner access for shadow mode deployment.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 mt-2">
+        <a
+          href="/docs"
+          class="py-2.5 px-5 bg-accent-solid hover:bg-accent-hover text-white text-xs font-semibold rounded transition-colors"
+        >
+          Read the Integration Guide
+        </a>
+        <a
+          href="/contact"
+          class="py-2.5 px-5 border border-border bg-surface-raised hover:bg-surface text-text text-xs font-semibold rounded transition-colors"
+        >
+          Contact Engineering
+        </a>
+      </div>
+    </div>
+  </section>
 </BaseLayout>

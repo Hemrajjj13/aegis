@@ -13,6 +13,14 @@ Target first customers: mid-size Indian fintechs and payment companies
 
 ---
 
+## Developer Documentation & Quick Links
+
+- **[Run.md](Run.md):** Complete, copy-pasteable guide to run the backend, console, website, and database on Windows using PowerShell.
+- **[ENV.md](ENV.md):** Authoritative single-source-of-truth reference for all environment variables, secrets generation, and production checklist.
+- **[HOSTING.md](HOSTING.md):** Production deployment guide for hosting the entire stack (website, console, backend, database) with free-tier architecture, domain routing, and CI/CD.
+
+---
+
 ## Repository layout and common commands
 
 Per [ADR-0010: Repository Layout and Workspace Separation](file:///c:/dev/aegis/docs/adr/0010-repository-layout.md), the repository is organized into decoupled functional subsystems:
@@ -20,6 +28,9 @@ Per [ADR-0010: Repository Layout and Workspace Separation](file:///c:/dev/aegis/
 ```text
 aegis/
 ├── README.md               # Primary project introduction and quickstart
+├── Run.md                  # Complete local execution and run guide
+├── ENV.md                  # Single source of truth for environment variables & secrets
+├── HOSTING.md              # Free-tier production deployment and hosting guide
 ├── AGENTS.md               # Prime directives and constraints for coding agents
 ├── DESIGN.md               # Design principles and architectural guidelines
 ├── .gitignore              # Repository-wide ignore rules

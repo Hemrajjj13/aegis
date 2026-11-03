@@ -1,0 +1,181 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/siteConfig';
+
+const apiUrl = siteConfig.apiUrl;
+---
+<BaseLayout
+  title={`API Reference & Integration Guide — ${siteConfig.productName}`}
+  description="Developer integration guide for Aegis: POST /v1/decisions endpoint, JSON schemas, idempotency semantics, authentication, and SSE real-time stream consumption."
+  canonicalPath="/docs"
+>
+  <div class="py-12 md:py-16 px-4 max-w-5xl mx-auto flex flex-col gap-10">
+    <!-- Header -->
+    <div class="flex flex-col gap-3">
+      <span class="text-xs font-mono text-accent uppercase tracking-wider">Developer Reference</span>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-text">
+        API Specification &amp; Ingest Guide
+      </h1>
+      <p class="text-xs md:text-sm text-text-muted max-w-2xl leading-relaxed">
+        The Aegis decision API is exposed as a synchronous HTTP/1.1 and HTTP/2 interface. Real-time telemetry is consumed over standard Server-Sent Events.
+      </p>
+    </div>
+
+    <!-- Quick Navigation Anchor Bar -->
+    <div class="flex flex-wrap gap-2 text-xs font-mono border-b border-border pb-4">
+      <a href="#authentication" class="px-2.5 py-1 rounded bg-surface hover:bg-surface-raised border border-border text-text">Auth</a>
+      <a href="#post-decisions" class="px-2.5 py-1 rounded bg-surface hover:bg-surface-raised border border-border text-text">POST /v1/decisions</a>
+      <a href="#idempotency" class="px-2.5 py-1 rounded bg-surface hover:bg-surface-raised border border-border text-text">Idempotency</a>
+      <a href="#zero-pan" class="px-2.5 py-1 rounded bg-surface hover:bg-surface-raised border border-border text-text">Zero PAN Policy</a>
+      <a href="#sse-stream" class="px-2.5 py-1 rounded bg-surface hover:bg-surface-raised border border-border text-text">GET /v1/events/stream</a>
+    </div>
+
+    <!-- 1. Authentication -->
+    <section id="authentication" class="scroll-mt-20 flex flex-col gap-3">
+      <h2 class="text-lg font-bold text-text font-mono">1. Authentication</h2>
+      <p class="text-xs text-text-muted leading-relaxed">
+        Production and staging requests must supply an RS256 JWT access token in the <code>Authorization</code> header:
+      </p>
+      <pre class="p-4 rounded border border-border bg-surface text-xs font-mono overflow-x-auto text-text"><code>Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...</code></pre>
+      <p class="text-xs text-text-muted leading-relaxed">
+        In local development environments (Tier 0 with <code>aegis.auth.mode=dev-header</code>), an explicit tenant header is accepted:
+      </p>
+      <pre class="p-4 rounded border border-border bg-surface text-xs font-mono overflow-x-auto text-text"><code>X-Tenant-Id: 00000000-0000-0000-0000-000000000001</code></pre>
+    </section>
+
+    <!-- 2. POST /v1/decisions -->
+    <section id="post-decisions" class="scroll-mt-20 flex flex-col gap-4">
+      <div class="flex items-center gap-3">
+        <span class="px-2 py-0.5 rounded font-mono text-xs font-bold bg-accent-solid text-white">POST</span>
+        <h2 class="text-lg font-bold text-text font-mono">/v1/decisions</h2>
+      </div>
+      <p class="text-xs text-text-muted leading-relaxed">
+        Evaluates a single payment authorization event against active tenant rulesets and returns an immediate decision outcome.
+      </p>
+
+      <h3 class="text-xs font-bold text-text uppercase tracking-wider font-mono mt-2">Request Headers</h3>
+      <div class="p-3 rounded border border-border bg-surface font-mono text-xs text-text-muted">
+        <div>Content-Type: application/json</div>
+        <div>Authorization: Bearer &lt;token&gt;</div>
+      </div>
+
+      <h3 class="text-xs font-bold text-text uppercase tracking-wider font-mono mt-2">Request Body (PaymentEvent)</h3>
+      <pre class="p-4 rounded border border-border bg-surface text-xs font-mono overflow-x-auto text-text leading-relaxed"><code>{`{
+  "event_id": "evt_9f82c401-4c17-4889-9a28",
+  "event_time": "2026-10-30T12:00:00Z",
+  "sequence_number": 10482,
+  "tenant_id": "00000000-0000-0000-0000-000000000001",
+  "account_id_hash": "sha256_acc_89147a",
+  "card_token": "tok_visa_4242",
+  "amount_minor_units": 450000,
+  "currency": "INR",
+  "payment_method": "CARD",
+  "merchant_id": "mer_ecommerce_77",
+  "merchant_categoryCode": "5411",
+  "merchant_name": "Acme Retail Store",
+  "channel": "WEB",
+  "ip_address": "203.0.113.195",
+  "device_id": "dev_macbook_pro_01",
+  "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+  "upi_vpa_hash": null,
+  "custom_fields": {
+    "risk_score_source": "internal_gateway",
+    "customer_tier": "gold"
+  }
+}`}</code></pre>
+
+      <h3 class="text-xs font-bold text-text uppercase tracking-wider font-mono mt-2">Response Body (DecisionResponse - HTTP 200)</h3>
+      <pre class="p-4 rounded border border-border bg-surface text-xs font-mono overflow-x-auto text-text leading-relaxed"><code>{`{
+  "decision_id": "c13fab12-4567-89ab-cdef-0123456789ab",
+  "event_id": "evt_9f82c401-4c17-4889-9a28",
+  "outcome": "APPROVE",
+  "score": 12.5,
+  "hard_rule_fired": false,
+  "ruleset_id": "ruleset_production_v1",
+  "ruleset_version_hash": "a1b2c3d4e5f67890",
+  "rules_fired": [
+    {
+      "rule_id": "rule_velocity_card_1h",
+      "score": 12.5,
+      "reason": "Card velocity within threshold (2 tx/h)",
+      "action": "SCORE"
+    }
+  ],
+  "degraded": false,
+  "degraded_reason": null,
+  "latency_ms": 3.82,
+  "timestamp": "2026-10-30T12:00:00.004Z"
+}`}</code></pre>
+
+      <h3 class="text-xs font-bold text-text uppercase tracking-wider font-mono mt-2">Curl Example</h3>
+      <pre class="p-4 rounded border border-border bg-surface text-xs font-mono overflow-x-auto text-text leading-relaxed"><code>{`curl -X POST ${apiUrl}/v1/decisions \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer $ACCESS_TOKEN" \\
+  -d '{
+    "event_id": "'$(uuidgen)'",
+    "event_time": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
+    "sequence_number": 1,
+    "tenant_id": "00000000-0000-0000-0000-000000000001",
+    "account_id_hash": "sha256_acc_test",
+    "card_token": "tok_visa_4242",
+    "amount_minor_units": 15000,
+    "currency": "INR",
+    "payment_method": "CARD",
+    "merchant_id": "mer_demo_01",
+    "merchant_category_code": "5411",
+    "merchant_name": "Demo Merchant",
+    "channel": "MOBILE",
+    "ip_address": "127.0.0.1",
+    "device_id": "dev_test_phone",
+    "user_agent": "AegisClient/1.0",
+    "upi_vpa_hash": null,
+    "custom_fields": {}
+  }'`}</code></pre>
+    </section>
+
+    <!-- 3. Idempotency -->
+    <section id="idempotency" class="scroll-mt-20 flex flex-col gap-3">
+      <h2 class="text-lg font-bold text-text font-mono">3. Idempotency on Duplicate Transaction IDs</h2>
+      <p class="text-xs text-text-muted leading-relaxed">
+        If a request with an existing <code>event_id</code> is resubmitted within the same tenant scope, Aegis detects the duplication via <code>DecisionPersistenceService.persistDecisionAtomically</code>.
+      </p>
+      <ul class="text-xs text-text-muted space-y-1.5 list-disc pl-5">
+        <li>The existing decision outcome is returned immediately with HTTP 200.</li>
+        <li>Velocity counters are <strong>not</strong> re-incremented.</li>
+        <li>No duplicate Server-Sent Event is published to downstream consumers.</li>
+      </ul>
+    </section>
+
+    <!-- 4. Zero PAN Invariant -->
+    <section id="zero-pan" class="scroll-mt-20 flex flex-col gap-3">
+      <h2 class="text-lg font-bold text-text font-mono">4. Zero PAN Invariant &amp; Rejection Format</h2>
+      <p class="text-xs text-text-muted leading-relaxed">
+        Aegis strictly prohibits unmasked card numbers. If any free-text parameter (e.g. <code>merchant_name</code> or values inside <code>custom_fields</code>) contains a 13-to-19 digit string matching the Luhn checksum, the engine rejects the request with HTTP 400:
+      </p>
+      <pre class="p-4 rounded border border-border bg-surface text-xs font-mono overflow-x-auto text-text leading-relaxed"><code>{`{
+  "type": "urn:problem:prohibited-data",
+  "title": "Raw PAN Prohibited",
+  "status": 400,
+  "detail": "Primary Account Numbers (PANs) are prohibited. Field 'custom_fields.note' contained a Luhn-valid card number.",
+  "instance": "/v1/decisions"
+}`}</code></pre>
+    </section>
+
+    <!-- 5. GET /v1/events/stream -->
+    <section id="sse-stream" class="scroll-mt-20 flex flex-col gap-4">
+      <div class="flex items-center gap-3">
+        <span class="px-2 py-0.5 rounded font-mono text-xs font-bold bg-surface-raised border border-border text-text">GET</span>
+        <h2 class="text-lg font-bold text-text font-mono">/v1/events/stream</h2>
+      </div>
+      <p class="text-xs text-text-muted leading-relaxed">
+        Connect to the Server-Sent Events (SSE) telemetry feed to stream decisions in real time.
+      </p>
+      <pre class="p-4 rounded border border-border bg-surface text-xs font-mono overflow-x-auto text-text leading-relaxed"><code>{`curl -N -H "Authorization: Bearer $ACCESS_TOKEN" \\
+  ${apiUrl}/v1/events/stream`}</code></pre>
+      <p class="text-xs text-text-muted leading-relaxed">
+        Each decision is dispatched with an <code>id</code> and <code>data</code> JSON payload containing the <code>DecisionResponse</code>.
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+

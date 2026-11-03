@@ -34,9 +34,9 @@ public class DevMailboxController {
     public void validateProfile() {
         if (environment != null && environment.getActiveProfiles() != null) {
             for (String profile : environment.getActiveProfiles()) {
-                if ("tier2".equalsIgnoreCase(profile)) {
+                if ("tier2".equalsIgnoreCase(profile) || "prod".equalsIgnoreCase(profile)) {
                     throw new IllegalStateException(
-                        "FATAL: DevMailboxController is strictly prohibited in tier2 deployment profiles."
+                        "FATAL: DevMailboxController is strictly prohibited in tier2 or prod deployment profiles."
                     );
                 }
             }

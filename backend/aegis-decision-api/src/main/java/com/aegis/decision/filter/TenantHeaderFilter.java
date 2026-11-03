@@ -49,10 +49,11 @@ public class TenantHeaderFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String path = request.getRequestURI();
-        // Allow unauthenticated bypass for healthchecks, auth, dev mailbox, swagger/actuator, and error
+        // Allow unauthenticated bypass for healthchecks, auth, dev mailbox, swagger/actuator, error, and public endpoints
         if (path.startsWith("/actuator") || path.equals("/health") || path.startsWith("/swagger")
                 || path.startsWith("/v3/api-docs") || path.equals("/error")
-                || path.startsWith("/v1/auth") || path.startsWith("/auth") || path.startsWith("/dev/")) {
+                || path.startsWith("/v1/auth") || path.startsWith("/auth") || path.startsWith("/dev/")
+                || path.startsWith("/v1/public")) {
             filterChain.doFilter(request, response);
             return;
         }

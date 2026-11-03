@@ -23,6 +23,7 @@ website/node_modules/
 website/dist/
 website/.astro/
 website/.screens/
+website/.lighthouse-reports/
 website/playwright-report/
 website/test-results/
 
@@ -42,3 +43,10 @@ __pycache__/
 *.iml
 .vscode/
 .DS_Store
+
+# Environment variables and secrets
+*.env
+*.env.local
+*.env.*.local
+!*.env.example
+

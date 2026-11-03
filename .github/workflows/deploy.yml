@@ -1,0 +1,65 @@
+name: Deploy to Production (Always Free VM)
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build & Deploy to Production VM
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build Marketing Website (Astro)
+        working-directory: website
+        env:
+          PUBLIC_SITE_URL: "https://${{ secrets.PROD_DOMAIN }}"
+          PUBLIC_CONSOLE_URL: "https://app.${{ secrets.PROD_DOMAIN }}"
+          PUBLIC_API_URL: "https://app.${{ secrets.PROD_DOMAIN }}"
+          PUBLIC_SECURITY_EMAIL: "security@${{ secrets.PROD_DOMAIN }}"
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build Console Frontend (React / Vite)
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd /opt/aegis
+
+            # Pull latest changes
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Rebuild and restart containers
+            docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
+
+            # Verify health status
+            sleep 15
+            docker compose -f docker-compose.prod.yml ps
+            curl -fsS http://127.0.0.1:8080/actuator/health || exit 1

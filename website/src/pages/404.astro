@@ -1,0 +1,25 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/siteConfig';
+---
+<BaseLayout
+  title={`Page Not Found — 404 — ${siteConfig.productName}`}
+  description="The requested page could not be located on Project Aegis."
+  canonicalPath="/404"
+  noindex={true}
+>
+  <div class="py-24 px-4 max-w-md mx-auto flex flex-col items-center text-center gap-6">
+    <span class="text-3xl font-mono font-bold text-accent">404</span>
+    <h1 class="text-xl font-bold text-text">Page Not Found</h1>
+    <p class="text-xs text-text-muted leading-relaxed">
+      The resource you requested does not exist or has been moved to a new route.
+    </p>
+    <a
+      href="/"
+      class="mt-2 py-2 px-4 rounded bg-accent-solid hover:bg-accent-hover text-white text-xs font-semibold shadow transition-colors"
+    >
+      Return to Home Page
+    </a>
+  </div>
+</BaseLayout>
+
