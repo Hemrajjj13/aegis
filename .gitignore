@@ -22,6 +22,8 @@ tools/extracted_schema.sql
 website/node_modules/
 website/dist/
 website/.astro/
+.astro/
+**/.astro/
 website/.screens/
 website/.lighthouse-reports/
 website/playwright-report/
@@ -45,8 +47,10 @@ __pycache__/
 .DS_Store
 
 # Environment variables and secrets
+.env
+.env.*
 *.env
 *.env.local
 *.env.*.local
+!.env.example
 !*.env.example
-

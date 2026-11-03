@@ -15,6 +15,8 @@ Target first customers: mid-size Indian fintechs and payment companies
 
 ## Developer Documentation & Quick Links
 
+- **[STATUS.md](STATUS.md):** Complete project audit, feature implementation table, milestone reality, and launch readiness checklist.
+- **[USAGE.md](USAGE.md):** Operational guide, roles, authentication, complete transaction schema, sample data, and FAQ.
 - **[Run.md](Run.md):** Complete, copy-pasteable guide to run the backend, console, website, and database on Windows using PowerShell.
 - **[ENV.md](ENV.md):** Authoritative single-source-of-truth reference for all environment variables, secrets generation, and production checklist.
 - **[HOSTING.md](HOSTING.md):** Production deployment guide for hosting the entire stack (website, console, backend, database) with free-tier architecture, domain routing, and CI/CD.
@@ -28,6 +30,8 @@ Per [ADR-0010: Repository Layout and Workspace Separation](file:///c:/dev/aegis/
 ```text
 aegis/
 ├── README.md               # Primary project introduction and quickstart
+├── STATUS.md               # Code audit, feature completeness, and milestone reality
+├── USAGE.md                # Usage guide, API contracts, sample data, and FAQ
 ├── Run.md                  # Complete local execution and run guide
 ├── ENV.md                  # Single source of truth for environment variables & secrets
 ├── HOSTING.md              # Free-tier production deployment and hosting guide
