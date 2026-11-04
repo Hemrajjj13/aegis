@@ -1,0 +1,36 @@
+# Git
+.git/
+.gitignore
+
+# Documentation
+docs/
+*.md
+
+# Local scratch and logs
+scratch/
+pgdata/
+.dev-keys/
+*.log
+*.err
+*.pid
+
+# Node / Frontend / Website artifacts
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
+website/node_modules/
+website/dist/
+website/.astro/
+website/.screens/
+
+# Gradle local caches
+.gradle/
+backend/.gradle/
+**/build/
+!backend/gradle/wrapper/gradle-wrapper.jar
+
+# Secrets
+*.env
+*.env.local

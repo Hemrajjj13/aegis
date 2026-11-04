@@ -1,0 +1,81 @@
+{
+    email {$ACME_EMAIL:-admin@example.com}
+}
+
+# 1. Marketing Website (Public Facing Static Astro Site)
+{$DOMAIN}, www.{$DOMAIN} {
+    root * /srv/website
+    file_server
+
+    # Security headers
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+
+    # Public contact form submission route forwarded to backend
+    handle /v1/public/* {
+        reverse_proxy backend:8080 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Custom 404 handler for static site
+    handle_errors {
+        rewrite * /404.html
+        file_server
+    }
+}
+
+# 2. Operator Console & Authenticated API (React SPA + Decision Engine)
+app.{$DOMAIN} {
+    # Forward all API and health endpoints to the Spring Boot backend
+    handle /v1/* {
+        reverse_proxy backend:8080 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+            # Disable buffering for real-time Server-Sent Events (/v1/events/stream)
+            flush_interval -1
+        }
+    }
+
+    handle /actuator/* {
+        reverse_proxy backend:8080 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Serve static React SPA console with client-side routing fallback
+    handle {
+        root * /srv/console
+        try_files {path} /index.html
+        file_server
+
+        header {
+            X-Content-Type-Options "nosniff"
+            X-Frame-Options "DENY"
+            Referrer-Policy "strict-origin-when-cross-origin"
+        }
+    }
+}
+
+# 3. Direct API Gateway Subdomain (for machine-to-machine payment event ingest)
+api.{$DOMAIN} {
+    reverse_proxy backend:8080 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        flush_interval -1
+    }
+}

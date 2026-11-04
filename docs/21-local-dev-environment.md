@@ -30,12 +30,15 @@ Per Decision [D1](file:///c:/dev/aegis/docs/00-decisions/decision-register.md) a
   - Configured resource constraints in [docker-compose.yml](file:///c:/dev/aegis/infra/docker-compose.yml) strictly enforce the 3,072 MB core limit (PostgreSQL 512MB, Redis 256MB, Kafka 768MB, Monolith 1280MB, Console 256MB).
   - Detailed environment analysis recorded in [docs/audit/build-blockers.md](file:///c:/dev/aegis/docs/audit/build-blockers.md).
 
-### 1.3 Measured Live Memory Footprint (Non-Docker Verification)
-Under Tier 0 verification without Docker (using native PostgreSQL binaries via `io.zonky.test:embedded-postgres` and Java 24 Spring Boot 3.3.5 runtime), actual Resident Set Size (RSS / Working Set) memory was directly measured via `Get-Process`:
-- **JVM (`aegis-app` Spring Boot monolith):** **120.03 MB** Working Set (222.76 MB Private Memory).
-- **PostgreSQL 14.10 (Master postmaster + background workers):** **213.00 MB** total Working Set (53.76 MB Private Memory across 10 worker processes including checkpointer, background writer, walwriter, and connection handlers).
-- **Combined Engine + Database Footprint:** **333.03 MB** Working Set.
-- **Docker Usage:** Docker was **not used** for this live measurement; verification executed via host-native binaries and embedded PostgreSQL runtime within the $\le 3.89\text{ GB}$ local workstation budget.
+### 1.3 Measured Live Memory Footprint (Non-Docker PostgreSQL 16 Verification)
+Under Tier 0 verification on the local developer workstation without Docker (using PostgreSQL 16.4 native binaries and Java 21 Spring Boot 3.3.5 runtime), actual Resident Set Size (RSS / Working Set) memory was directly measured via `Get-Process`:
+- **JVM (`aegis-app` Spring Boot monolith):** **214.19 MB** Working Set (249.11 MB Private Memory, Java 21 OpenJDK Temurin-21.0.12.1+1).
+- **PostgreSQL 16.4 (Master postmaster + background workers):** **245.85 MB** total Working Set (64.41 MB Private Memory across 16 worker processes).
+- **Combined Engine + Database Footprint:** **460.04 MB** Working Set (well within the $\le 3,988\text{ MB}$ local workstation budget).
+- **200 Sequential Decisions Benchmark (single-machine, single-client):**
+  - Total Time: **6.37 s** (Throughput: **31.4 req/sec**)
+  - Min: **10.69 ms**, Avg: **29.26 ms**, P50: **24.42 ms**, P90: **46.00 ms**, P95: **57.37 ms**, P99: **131.14 ms**, Max: **218.47 ms**
+- **Docker Usage:** Docker was **not used** for this live measurement; verification executed via host-native PostgreSQL 16.4 binaries and Java 21 runtime within the $\le 3.89\text{ GB}$ local workstation budget.
 
 ---
 

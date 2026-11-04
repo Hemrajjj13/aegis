@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/siteConfig';
+---
+<BaseLayout
+  title={`Privacy Policy — ${siteConfig.productName}`}
+  description="Privacy practices for Project Aegis: zero cookies, zero analytics, secure contact dispatch via Resend, and console session cookies."
+  canonicalPath="/privacy"
+>
+  <div class="py-12 md:py-16 px-4 max-w-3xl mx-auto flex flex-col gap-8 text-xs text-text-muted leading-relaxed">
+    <!-- Notice -->
+    <div class="p-3 rounded border border-accent/40 bg-accent/10 text-accent font-mono text-[11px]">
+      Draft, needs legal review before launch
+    </div>
+
+    <!-- Header -->
+    <div class="flex flex-col gap-2">
+      <h1 class="text-2xl md:text-3xl font-bold text-text">Privacy Policy</h1>
+      <p class="font-mono text-[11px]">Last Updated: October 2026</p>
+    </div>
+
+    <section class="space-y-3">
+      <h2 class="text-sm font-semibold text-text font-mono">1. Zero Cookies on the Public Marketing Site</h2>
+      <p>
+        The public marketing site (<code>{siteConfig.siteUrl}</code>) sets zero cookies. We do not use advertising identifiers, session storage, or tracking beacons on this site.
+      </p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-sm font-semibold text-text font-mono">2. Zero Analytics &amp; Zero Third-Party Scripts</h2>
+      <p>
+        We do not embed third-party tracking scripts, tag managers, Google Analytics, social media trackers, or third-party font CDNs. All typography (Inter and JetBrains Mono) is self-hosted directly from our build artifacts.
+      </p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-sm font-semibold text-text font-mono">3. Contact Form Data &amp; Resend Dispatch</h2>
+      <p>
+        When you submit an inquiry through our contact form (<code>/contact</code>), the data you supply (name, work email, organization, topic, and message) is submitted to our backend decision engine service and forwarded directly to our engineering mailbox via Resend.
+      </p>
+      <p>
+        The public marketing website itself does not store or persist your form submission data in a database. Data sent via email is retained solely to correspond with you regarding your inquiry.
+      </p>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-sm font-semibold text-text font-mono">4. Operator Console Cookies</h2>
+      <p>
+        If you access the Aegis Operator Console (<code>{siteConfig.consoleUrl}</code>), the authentication service sets a single secure HTTP cookie for session management:
+      </p>
+      <ul class="list-disc pl-5 space-y-1">
+        <li><strong>Cookie Name:</strong> <code>refresh_token</code></li>
+        <li><strong>Attributes:</strong> <code>HttpOnly; Secure; SameSite=Strict; Path=/v1/auth</code></li>
+        <li><strong>Purpose:</strong> Authenticates silent token rotation for active operator sessions. It cannot be accessed by client-side JavaScript.</li>
+      </ul>
+    </section>
+
+    <section class="space-y-3">
+      <h2 class="text-sm font-semibold text-text font-mono">5. Contact Information</h2>
+      <p>
+        For inquiries regarding our data handling practices or to exercise data privacy rights, please reach out to <a href={`mailto:${siteConfig.securityEmail}`} class="text-accent hover:underline font-mono">{siteConfig.securityEmail}</a>.
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+

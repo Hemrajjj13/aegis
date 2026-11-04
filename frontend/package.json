@@ -21,8 +21,10 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.475.0",
     "openapi-fetch": "^0.13.4",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.18.5"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",
@@ -31,6 +33,7 @@
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
     "@types/node": "^22.10.1",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
@@ -42,10 +45,14 @@
     "eslint-plugin-react-refresh": "^0.4.14",
     "jsdom": "^25.0.1",
     "openapi-typescript": "^7.4.3",
+    "otplib": "^13.5.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
-    "vitest": "^2.1.8"
+    "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "tinypool": "^2.1.2"
   }
 }

@@ -1,0 +1,126 @@
+version: "3.8"
+
+services:
+  # =========================================================================
+  # 1. PostgreSQL 16 (Multi-Tenant Persistence with Row-Level Security)
+  # =========================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: aegis-prod-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aegis}
+      POSTGRES_USER: ${AEGIS_PG_USER:-aegis_app}
+      POSTGRES_PASSWORD: ${AEGIS_PG_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    command: >
+      postgres
+        -c shared_buffers=128MB
+        -c max_connections=50
+        -c work_mem=4MB
+        -c maintenance_work_mem=32MB
+    volumes:
+      - aegis_prod_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AEGIS_PG_USER:-aegis_app} -d ${POSTGRES_DB:-aegis}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - aegis-internal
+
+  # =========================================================================
+  # 2. Redis 7 (In-Memory Atomic Sliding Windows & Velocity Counters)
+  # =========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: aegis-prod-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+        --maxmemory 128mb
+        --maxmemory-policy volatile-lru
+        --save ""
+        --appendonly no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - aegis-internal
+
+  # =========================================================================
+  # 3. Spring Boot Backend Monolith (aegis-app)
+  # =========================================================================
+  backend:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.backend
+    container_name: aegis-prod-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8080
+      AEGIS_PG_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-aegis}
+      AEGIS_PG_USER: ${AEGIS_PG_USER:-aegis_app}
+      AEGIS_PG_PASSWORD: ${AEGIS_PG_PASSWORD}
+      AEGIS_REDIS_HOST: redis
+      AEGIS_REDIS_PORT: 6379
+      AEGIS_TOTP_ENC_KEY: ${AEGIS_TOTP_ENC_KEY}
+      AEGIS_JWT_PRIVATE_KEY: ${AEGIS_JWT_PRIVATE_KEY}
+      AEGIS_JWT_PUBLIC_KEY: ${AEGIS_JWT_PUBLIC_KEY}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      CONTACT_TO_EMAIL: ${CONTACT_TO_EMAIL:-contact@projectaegis.in}
+      CONTACT_FROM_EMAIL: ${CONTACT_FROM_EMAIL:-notifications@projectaegis.in}
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL}
+      PUBLIC_CONSOLE_URL: ${PUBLIC_CONSOLE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/actuator/health | grep UP || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - aegis-internal
+
+  # =========================================================================
+  # 4. Caddy Reverse Proxy & Automatic HTTPS
+  # =========================================================================
+  caddy:
+    image: caddy:2-alpine
+    container_name: aegis-prod-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-example.com}
+    volumes:
+      - ./infra/prod/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./website/dist:/srv/website:ro
+      - ./frontend/dist:/srv/console:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - aegis-internal
+
+networks:
+  aegis-internal:
+    driver: bridge
+
+volumes:
+  aegis_prod_pgdata:
+    name: aegis_prod_pgdata
+  caddy_data:
+    name: aegis_caddy_data
+  caddy_config:
+    name: aegis_caddy_config

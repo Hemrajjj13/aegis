@@ -1,0 +1,11 @@
+---
+import { siteConfig, isPlaceholder } from '../config/siteConfig';
+const email = isPlaceholder(siteConfig.contactEmail) ? siteConfig.contactEmail.value : String(siteConfig.contactEmail);
+---
+<section id="careers" class="mx-auto max-w-6xl px-4 py-20">
+  <h2 class="text-3xl font-semibold tracking-tight">Careers</h2>
+  <p class="mt-4 max-w-3xl text-text-muted">
+    There are no open roles yet. If you work on payments risk, backend engineering or React and want to help build this, write to us.
+  </p>
+  <a href={`mailto:${email}?subject=Careers`} class="mt-4 inline-block rounded-md border border-border px-4 py-2 text-sm hover:bg-surface-raised">Write to us</a>
+</section>

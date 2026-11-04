@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: aegis-decision-api-test
+  profiles:
+    active: tier0
+
+aegis:
+  auth:
+    mode: dev-header
+

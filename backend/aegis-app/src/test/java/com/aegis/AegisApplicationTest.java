@@ -16,6 +16,9 @@ class AegisApplicationTest {
     @MockBean
     private DecisionPersistenceService persistenceService;
 
+    @MockBean
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     @Test
     void contextLoads() {
     }

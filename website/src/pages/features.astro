@@ -1,0 +1,122 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/siteConfig';
+---
+<BaseLayout
+  title={`Capabilities & Core Features — ${siteConfig.productName}`}
+  description="Technical capabilities of Aegis: sub-10ms decisions, deterministic replay, CEL rules, cryptographic audit trails, velocity counters, and tenant isolation."
+  canonicalPath="/features"
+>
+  <div class="py-12 md:py-16 px-4 max-w-5xl mx-auto flex flex-col gap-12">
+    <!-- Header -->
+    <div class="flex flex-col gap-3">
+      <span class="text-xs font-mono text-accent uppercase tracking-wider">Platform Capabilities</span>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-text">
+        Engine features engineered for financial precision.
+      </h1>
+      <p class="text-xs md:text-sm text-text-muted max-w-2xl leading-relaxed">
+        Every capability is backed by specification documents and automated test harnesses in our repository. Features scheduled for Milestone M8 are labeled honestly as Coming Soon.
+      </p>
+    </div>
+
+    <!-- 6 Detailed Feature Blocks -->
+    <div class="space-y-10">
+      <!-- 1. Sub-10ms Decisions -->
+      <section id="real-time-decisions" class="p-6 md:p-8 rounded-lg border border-border bg-surface flex flex-col gap-4 scroll-mt-20">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-accent">01 / LOW LATENCY INGEST</span>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded border border-approve/30 bg-approve/10 text-approve font-semibold">Active in Code</span>
+        </div>
+        <h2 class="text-xl font-bold text-text">Sub-10ms Transaction Decision Path</h2>
+        <p class="text-xs text-text-muted leading-relaxed">
+          The decision ingest API accepts standard payment events via <code>POST /v1/decisions</code>. It executes Luhn scanning on free-text fields, computes an account velocity hash, checks deduplication, evaluates rules, and persists the outcome in a single transaction path. On 200 sequential benchmark requests on workstation hardware, local decision execution averaged 5.37ms.
+        </p>
+        <div class="p-3 rounded border border-border bg-surface-raised font-mono text-[11px] text-text-muted">
+          Input fields: event_id, event_time, amount_minor_units, currency, payment_method, merchant_id, ip_address, card_token.
+        </div>
+      </section>
+
+      <!-- 2. Deterministic Backtesting & Replay -->
+      <section id="deterministic-backtesting" class="p-6 md:p-8 rounded-lg border border-border bg-surface flex flex-col gap-4 scroll-mt-20">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-accent">02 / PURE DETERMINISM</span>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded border border-approve/30 bg-approve/10 text-approve font-semibold">Active in Code</span>
+        </div>
+        <h2 class="text-xl font-bold text-text">Deterministic Backtesting and Rule Simulation</h2>
+        <p class="text-xs text-text-muted leading-relaxed">
+          Aegis enforces pure determinism in the core engine. System calls such as <code>System.currentTimeMillis()</code> and <code>new Date()</code> are strictly prohibited in <code>aegis-core</code>. All temporal operations receive an injected <code>EventClock</code> based on the transaction timestamp. This allows identical reproduction of decision outcomes during historical replay.
+        </p>
+        <div class="p-3 rounded border border-border bg-surface-raised font-mono text-[11px] text-text-muted">
+          Core invariant: f(event, ruleset, state_t) == f(event, ruleset, state_t) at any point in time.
+        </div>
+      </section>
+
+      <!-- 3. CEL Rule DSL -->
+      <section id="cel-rules" class="p-6 md:p-8 rounded-lg border border-border bg-surface flex flex-col gap-4 scroll-mt-20">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-accent">03 / RULE AUTHORING</span>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded border border-border bg-surface-raised text-text-muted font-semibold">Console UI: Coming Soon</span>
+        </div>
+        <h2 class="text-xl font-bold text-text">Common Expression Language (CEL) Rule Authoring</h2>
+        <p class="text-xs text-text-muted leading-relaxed">
+          Rules are written in Google Common Expression Language (CEL), providing type-safe, non-Turing-complete evaluation that terminates in bounded cycles without arbitrary loop overhead. Rules support a maker-checker draft, review, and activation workflow.
+        </p>
+        <div class="p-3 rounded border border-border bg-surface-raised font-mono text-[11px] text-text-muted">
+          Example CEL rule: <code>amount_minor_units &gt; 5000000 &amp;&amp; velocity_1h_count &gt; 3 &amp;&amp; channel == "UPI"</code>
+        </div>
+      </section>
+
+      <!-- 4. Cryptographic Audit Trail -->
+      <section id="audit-trail" class="p-6 md:p-8 rounded-lg border border-border bg-surface flex flex-col gap-4 scroll-mt-20">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-accent">04 / TAMPER EVIDENCE</span>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded border border-border bg-surface-raised text-text-muted font-semibold">Audit Ledger: Coming Soon</span>
+        </div>
+        <h2 class="text-xl font-bold text-text">Cryptographic Audit Trails & Merkle Tree Sealing</h2>
+        <p class="text-xs text-text-muted leading-relaxed">
+          All administrative actions, login attempts, rule promotions, and automated decisions generate tamper-evident audit records. Batches of events are hashed into a SHA-256 Merkle tree root to detect any retrospective alteration or record tampering.
+        </p>
+        <div class="p-3 rounded border border-border bg-surface-raised font-mono text-[11px] text-text-muted">
+          Audit events logged: LOGIN_SUCCESS, USER_INVITE, CONFIG_CHANGE, DECISION_STORED.
+        </div>
+      </section>
+
+      <!-- 5. Dual-Schema Velocity -->
+      <section id="velocity-counters" class="p-6 md:p-8 rounded-lg border border-border bg-surface flex flex-col gap-4 scroll-mt-20">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-accent">05 / STATEFUL METRICS</span>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded border border-approve/30 bg-approve/10 text-approve font-semibold">Active in Code</span>
+        </div>
+        <h2 class="text-xl font-bold text-text">Dual-Schema Velocity Counters</h2>
+        <p class="text-xs text-text-muted leading-relaxed">
+          Velocity checks calculate transaction frequency across sliding intervals (1 minute, 10 minutes, 1 hour, 24 hours). Atomic Lua scripts update Redis sorted sets with millisecond score timestamps, evicting expired events and returning updated counts without multi-roundtrip locking.
+        </p>
+        <div class="p-3 rounded border border-border bg-surface-raised font-mono text-[11px] text-text-muted">
+          Identifiers: account_id_hash, card_token, ip_address, device_id.
+        </div>
+      </section>
+
+      <!-- 6. Multi-Tenant Isolation -->
+      <section id="tenant-isolation" class="p-6 md:p-8 rounded-lg border border-border bg-surface flex flex-col gap-4 scroll-mt-20">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-accent">06 / DATA ISOLATION</span>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded border border-approve/30 bg-approve/10 text-approve font-semibold">Active in Code</span>
+        </div>
+        <h2 class="text-xl font-bold text-text">Row-Level Security Tenant Isolation</h2>
+        <p class="text-xs text-text-muted leading-relaxed">
+          Aegis uses PostgreSQL Row-Level Security on every tenant table. Queries execute with <code>SET LOCAL app.current_tenant_id = ?</code>. The database role <code>app_auth_user</code> has <code>NOBYPASSRLS</code>, preventing cross-tenant leakage even in the event of application-layer filter errors.
+        </p>
+        <div class="p-3 rounded border border-border bg-surface-raised font-mono text-[11px] text-text-muted">
+          Enforced tables: aegis_auth.users, credentials, totp_secrets, invites, sessions, decisions.
+        </div>
+      </section>
+    </div>
+
+    <!-- Bottom link to Docs -->
+    <div class="pt-6 border-t border-border flex justify-between items-center text-xs">
+      <span class="text-text-muted">Need integration specifics?</span>
+      <a href="/docs" class="font-semibold text-accent hover:underline">Read the API Reference →</a>
+    </div>
+  </div>
+</BaseLayout>
+

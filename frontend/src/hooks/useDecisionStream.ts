@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
-import { DEV_TENANT_ID } from '../api/client';
+import { getAccessToken } from '../api/authTokens';
 import type { DecisionAction } from '../state/decisionReducer';
 import type { DecisionResponse, StreamConnectionStatus } from '../types/decision';
 
@@ -11,19 +11,19 @@ interface UseDecisionStreamOptions {
 }
 
 /**
- * SSE hook using @microsoft/fetch-event-source (NOT native EventSource),
- * required because native EventSource cannot attach custom HTTP headers like X-Tenant-Id.
- *
+ * SSE hook using @microsoft/fetch-event-source (NOT native EventSource).
+ * 
  * Implements:
- * 1. X-Tenant-Id header transmission from VITE_DEV_TENANT_ID.
- * 2. Ignores the "connected" handshake event.
- * 3. Exponential backoff reconnection with visible status indicator.
- * 4. Clean stream teardown via AbortController.
+ * 1. Bearer JWT authorization header transmission from memory.
+ * 2. Optional X-Tenant-Id fallback header for development.
+ * 3. Ignores the "connected" handshake event.
+ * 4. Exponential backoff reconnection with visible status indicator.
+ * 5. Clean stream teardown via AbortController.
  */
 export function useDecisionStream({
   dispatch,
   url = '/v1/events/stream',
-  tenantId = DEV_TENANT_ID,
+  tenantId,
 }: UseDecisionStreamOptions) {
   const [status, setStatus] = useState<StreamConnectionStatus>('connecting');
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -42,12 +42,20 @@ export function useDecisionStream({
 
     setStatus(reconnectAttemptRef.current > 0 ? 'reconnecting' : 'connecting');
 
+    const headers: Record<string, string> = {
+      'Accept': 'text/event-stream',
+    };
+    const token = getAccessToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    if (tenantId) {
+      headers['X-Tenant-Id'] = tenantId;
+    }
+
     fetchEventSource(url, {
       method: 'GET',
-      headers: {
-        'Accept': 'text/event-stream',
-        'X-Tenant-Id': tenantId,
-      },
+      headers,
       signal: controller.signal,
 
       async onopen(response) {

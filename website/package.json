@@ -1,0 +1,36 @@
+{
+  "name": "aegis-website",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "check:content": "node ../tools/check-website-content.mjs",
+    "check:budget": "node scripts/check-budget.mjs"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.1.6",
+    "@fontsource/inter": "5.1.0",
+    "@fontsource/jetbrains-mono": "5.1.0",
+    "astro": "4.16.18"
+  },
+  "devDependencies": {
+    "@astrojs/tailwind": "5.1.4",
+    "@axe-core/playwright": "4.10.1",
+    "@playwright/test": "1.49.1",
+    "@types/node": "22.10.1",
+    "autoprefixer": "10.4.20",
+    "postcss": "8.4.49",
+    "tailwindcss": "3.4.16",
+    "typescript": "5.6.3",
+    "vitest": "2.1.8"
+  },
+  "overrides": {
+    "playwright-core": "$@playwright/test"
+  }
+}

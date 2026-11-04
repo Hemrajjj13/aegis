@@ -47,10 +47,11 @@ CREATE ROLE app_replay_user WITH LOGIN PASSWORD '${DB_REPLAY_PASSWORD}';
 CREATE ROLE app_sealer_user WITH LOGIN PASSWORD '${DB_SEALER_PASSWORD}';
 CREATE ROLE app_outbox_relay WITH LOGIN PASSWORD '${DB_OUTBOX_PASSWORD}';
 CREATE ROLE app_console_user WITH LOGIN PASSWORD '${DB_CONSOLE_PASSWORD}';
+CREATE ROLE app_auth_user WITH LOGIN PASSWORD '${DB_AUTH_PASSWORD}'; -- Governed by ADR-0011 for pre-tenant auth lookups
 
 -- Revoke default public permissions
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
-GRANT USAGE ON SCHEMA public TO app_live_user, app_replay_user, app_sealer_user, app_outbox_relay, app_console_user;
+GRANT USAGE ON SCHEMA public TO app_live_user, app_replay_user, app_sealer_user, app_outbox_relay, app_console_user, app_auth_user;
 
 -- Live user permissions
 GRANT SELECT, INSERT ON TABLE processed_events, outbox TO app_live_user;

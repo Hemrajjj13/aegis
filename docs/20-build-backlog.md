@@ -140,13 +140,18 @@ Total Backlog Points: 214 Story Points
 ---
 
 ### Milestone M8: Identity Subsystem, Credentials, and RBAC (21 Points)
+
+> **ADR-0011 Alignment:** Implements in-house identity provider, globally unique normalized email/mobile, Argon2id hashing, RS256/EdDSA JWT signing with dev-key auto-generation, AES-256-GCM TOTP encryption, in-memory rate limiting, and dedicated `app_auth_user` RLS role. Machine API-key / HMAC callers (`/tenant/keys`) are deferred as a recorded production gap; `POST /v1/decisions` accepts console user bearer tokens in the interim.
+
 - **Goal:** Implement the pluggable in-house identity subsystem for Tier 0 and Tier 1 without third-party SaaS dependencies.
 - **Stories:**
-  - `TSK-035` (5 pts): Flyway `V9__init_auth_and_sessions.sql` schema and entities for users, credentials, TOTP secrets, invites, and sessions, supporting the seven canonical roles (`owner`, `admin`, `risk_manager`, `rule_author`, `risk_analyst`, `auditor`, `developer`). Ref: [Doc 19 §2](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).
-  - `TSK-036` (5 pts): Implement `InProcessSpringSecurityIdentityProvider` with Argon2id password hashing, rotating refresh tokens, and 15-minute JWT issuance. Ref: [Doc 19 §4](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md), [ADR-0007](file:///c:/dev/aegis/docs/adr/0007-identity-behind-a-port.md).
-  - `TSK-037` (5 pts): RFC 6238 TOTP enrollment and challenge verification with encrypted secret storage (AES-256-GCM). Ref: [Doc 19 §3.3](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).
-  - `TSK-038` (3 pts): Implement `LocalMailboxNotificationService` writing signup OTPs and invite tokens to stdout/log for Tier 0/1. Ref: [Doc 19 §6](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).
-  - `TSK-039` (3 pts): Account lockout integration test (`AuthenticationBruteForceTest`): Assert 5 failed logins triggers 30-minute lockout. Ref: [Doc 08 §4.4](file:///c:/dev/aegis/docs/08-threat-model.md).
+  - `TSK-035` (5 pts) [COMPLETED]: Flyway `V9__init_auth_and_sessions.sql` schema and entities for users, credentials, TOTP secrets, invites, and sessions, supporting the seven canonical roles (`owner`, `admin`, `risk_manager`, `rule_author`, `risk_analyst`, `auditor`, `developer`). Ref: [Doc 19 §2](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).
+  - `TSK-036` (5 pts) [COMPLETED]: Implement `InProcessSpringSecurityIdentityProvider` with Argon2id password hashing, rotating refresh tokens, and 15-minute JWT issuance. Ref: [Doc 19 §4](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md), [ADR-0007](file:///c:/dev/aegis/docs/adr/0007-identity-behind-a-port.md).
+  - `TSK-037` (5 pts) [COMPLETED]: RFC 6238 TOTP enrollment and challenge verification with encrypted secret storage (AES-256-GCM). Ref: [Doc 19 §3.3](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).
+  - `TSK-038` (3 pts) [COMPLETED]: Implement `LocalMailboxNotificationService` writing signup OTPs and invite tokens to stdout/log for Tier 0/1. Ref: [Doc 19 §6](file:///c:/dev/aegis/docs/19-identity-and-auth-spec.md).
+  - `TSK-039` (3 pts) [COMPLETED]: Account lockout integration test (`AuthenticationBruteForceTest`): Assert 5 failed logins triggers 30-minute lockout. Ref: [Doc 08 §4.4](file:///c:/dev/aegis/docs/08-threat-model.md).
+  - `TSK-040` (5 pts) [COMPLETED]: Console Authentication UI and session state machine (`frontend/`), accessible multi-step signup, login challenge, invite acceptance, forgot-password, dev mailbox, 12/12 Playwright tests passing with axe WCAG 2.1 AA audits.
+  - `TSK-041` (5 pts) [COMPLETED]: Public marketing website in `website/` with Astro static output, zero tracking, zero cookies, Inter & JetBrains Mono self-hosted fonts, passing content and performance audits. Ref: [ADR-0012](file:///c:/dev/aegis/docs/adr/0012-marketing-website-lives-in-website.md).
 
 ---
 

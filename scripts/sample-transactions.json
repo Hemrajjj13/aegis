@@ -1,0 +1,289 @@
+[
+  {
+    "description": "Standard retail coffee purchase under 50,000 INR",
+    "expected_outcome": "APPROVE",
+    "payload": {
+      "event_id": "tx-sample-001",
+      "event_time": "2026-11-03T17:00:01Z",
+      "sequence_number": 1,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "account_id_hash": "acc_hash_cust_101",
+      "card_token": "tok_visa_4242424242424242",
+      "amount_minor_units": 35000,
+      "currency": "INR",
+      "payment_method": "CARD",
+      "merchant_id": "merch_starbucks_mumbai_01",
+      "merchant_category_code": "5812",
+      "merchant_name": "Starbucks Coffee Bandra",
+      "channel": "POS",
+      "ip_address": "103.21.244.10",
+      "device_id": "pos_terminal_bandra_04",
+      "user_agent": "AegisTerminal/2.1",
+      "custom_fields": {
+        "terminal_type": "smart_pos",
+        "city": "Mumbai"
+      }
+    }
+  },
+  {
+    "description": "High-value luxury jewelry purchase >= 50,000 INR threshold",
+    "expected_outcome": "REVIEW",
+    "payload": {
+      "event_id": "tx-sample-002",
+      "event_time": "2026-11-03T17:00:05Z",
+      "sequence_number": 2,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "account_id_hash": "acc_hash_cust_102",
+      "card_token": "tok_mastercard_5555555555554444",
+      "amount_minor_units": 7500000,
+      "currency": "INR",
+      "payment_method": "CARD",
+      "merchant_id": "merch_tanishq_delhi_09",
+      "merchant_category_code": "5944",
+      "merchant_name": "Tanishq Jewelers Connaught Place",
+      "channel": "POS",
+      "ip_address": "115.112.24.5",
+      "device_id": "pos_terminal_cp_01",
+      "user_agent": "AegisTerminal/2.1",
+      "custom_fields": {
+        "invoice_ref": "INV-2026-9041",
+        "store_tier": "flagship"
+      }
+    }
+  },
+  {
+    "description": "Everyday grocery purchase via UPI QR code",
+    "expected_outcome": "APPROVE",
+    "payload": {
+      "event_id": "tx-sample-003",
+      "event_time": "2026-11-03T17:00:10Z",
+      "sequence_number": 3,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "account_id_hash": "acc_hash_cust_103",
+      "upi_vpa_hash": "vpa_hash_customer@oksbi",
+      "amount_minor_units": 125000,
+      "currency": "INR",
+      "payment_method": "UPI",
+      "merchant_id": "merch_nature_basket_blr",
+      "merchant_category_code": "5411",
+      "merchant_name": "Nature Basket Indiranagar",
+      "channel": "POS",
+      "ip_address": "49.207.180.12",
+      "device_id": "static_qr_stand_03",
+      "user_agent": "BHIM/UPI-Client-v4",
+      "custom_fields": {
+        "qr_type": "dynamic"
+      }
+    }
+  },
+  {
+    "description": "Online e-commerce electronics purchase via web checkout",
+    "expected_outcome": "APPROVE",
+    "payload": {
+      "event_id": "tx-sample-004",
+      "event_time": "2026-11-03T17:00:15Z",
+      "sequence_number": 4,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "account_id_hash": "acc_hash_cust_104",
+      "card_token": "tok_visa_4000000000000002",
+      "amount_minor_units": 3299000,
+      "currency": "INR",
+      "payment_method": "CARD",
+      "merchant_id": "merch_croma_online",
+      "merchant_category_code": "5732",
+      "merchant_name": "Croma Online Retail",
+      "channel": "WEB",
+      "ip_address": "157.48.12.89",
+      "device_id": "browser_fp_d8f2e9",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0",
+      "custom_fields": {
+        "session_id": "sess_ecom_91823"
+      }
+    }
+  },
+  {
+    "description": "Exact duplicate of tx-sample-001 (idempotency verification)",
+    "expected_outcome": "APPROVE (Cached)",
+    "payload": {
+      "event_id": "tx-sample-001",
+      "event_time": "2026-11-03T17:00:01Z",
+      "sequence_number": 1,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "account_id_hash": "acc_hash_cust_101",
+      "card_token": "tok_visa_4242424242424242",
+      "amount_minor_units": 35000,
+      "currency": "INR",
+      "payment_method": "CARD",
+      "merchant_id": "merch_starbucks_mumbai_01",
+      "merchant_category_code": "5812",
+      "merchant_name": "Starbucks Coffee Bandra",
+      "channel": "POS",
+      "ip_address": "103.21.244.10",
+      "device_id": "pos_terminal_bandra_04",
+      "user_agent": "AegisTerminal/2.1",
+      "custom_fields": {
+        "terminal_type": "smart_pos",
+        "city": "Mumbai"
+      }
+    }
+  },
+  {
+    "description": "High-value enterprise wholesale hardware invoice >= 50,000 INR",
+    "expected_outcome": "REVIEW",
+    "payload": {
+      "event_id": "tx-sample-005",
+      "event_time": "2026-11-03T17:00:20Z",
+      "sequence_number": 5,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "account_id_hash": "acc_hash_enterprise_501",
+      "amount_minor_units": 15000000,
+      "currency": "INR",
+      "payment_method": "NETBANKING",
+      "merchant_id": "merch_ingram_micro_in",
+      "merchant_category_code": "5045",
+      "merchant_name": "Ingram Micro Distribution India",
+      "channel": "API",
+      "ip_address": "14.141.33.2",
+      "device_id": "b2b_gateway_01",
+      "user_agent": "ERP-Connector/4.0",
+      "custom_fields": {
+        "po_number": "PO-99120",
+        "terms": "net30"
+      }
+    }
+  },
+  {
+    "description": "Mobile app ride-hailing cab fare",
+    "expected_outcome": "APPROVE",
+    "payload": {
+      "event_id": "tx-sample-006",
+      "event_time": "2026-11-03T17:00:25Z",
+      "sequence_number": 6,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "account_id_hash": "acc_hash_cust_105",
+      "upi_vpa_hash": "vpa_hash_user@paytm",
+      "amount_minor_units": 45000,
+      "currency": "INR",
+      "payment_method": "UPI",
+      "merchant_id": "merch_uber_india",
+      "merchant_category_code": "4121",
+      "merchant_name": "Uber India Mobility",
+      "channel": "MOBILE_APP",
+      "ip_address": "106.51.22.14",
+      "device_id": "android_imei_hash_8f91",
+      "user_agent": "UberApp/4.51 (Android 14)",
+      "custom_fields": {
+        "ride_id": "ride_mum_0912"
+      }
+    }
+  },
+  {
+    "description": "Velocity burst event 1 of 3: rapid gaming microtransaction",
+    "expected_outcome": "APPROVE",
+    "payload": {
+      "event_id": "tx-sample-007",
+      "event_time": "2026-11-03T17:00:30Z",
+      "sequence_number": 7,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "account_id_hash": "acc_hash_burst_user_77",
+      "card_token": "tok_visa_4242424242424242",
+      "amount_minor_units": 10000,
+      "currency": "INR",
+      "payment_method": "CARD",
+      "merchant_id": "merch_steam_games",
+      "merchant_category_code": "5816",
+      "merchant_name": "Valve Steam Games",
+      "channel": "WEB",
+      "ip_address": "27.56.90.11",
+      "device_id": "win_client_fp_88",
+      "user_agent": "SteamClient/1.0"
+    }
+  },
+  {
+    "description": "Velocity burst event 2 of 3: second rapid gaming microtransaction (1s later)",
+    "expected_outcome": "APPROVE",
+    "payload": {
+      "event_id": "tx-sample-008",
+      "event_time": "2026-11-03T17:00:31Z",
+      "sequence_number": 8,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "account_id_hash": "acc_hash_burst_user_77",
+      "card_token": "tok_visa_4242424242424242",
+      "amount_minor_units": 10000,
+      "currency": "INR",
+      "payment_method": "CARD",
+      "merchant_id": "merch_steam_games",
+      "merchant_category_code": "5816",
+      "merchant_name": "Valve Steam Games",
+      "channel": "WEB",
+      "ip_address": "27.56.90.11",
+      "device_id": "win_client_fp_88",
+      "user_agent": "SteamClient/1.0"
+    }
+  },
+  {
+    "description": "Velocity burst event 3 of 3: third rapid gaming microtransaction (2s later)",
+    "expected_outcome": "APPROVE",
+    "payload": {
+      "event_id": "tx-sample-009",
+      "event_time": "2026-11-03T17:00:32Z",
+      "sequence_number": 9,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "account_id_hash": "acc_hash_burst_user_77",
+      "card_token": "tok_visa_4242424242424242",
+      "amount_minor_units": 10000,
+      "currency": "INR",
+      "payment_method": "CARD",
+      "merchant_id": "merch_steam_games",
+      "merchant_category_code": "5816",
+      "merchant_name": "Valve Steam Games",
+      "channel": "WEB",
+      "ip_address": "27.56.90.11",
+      "device_id": "win_client_fp_88",
+      "user_agent": "SteamClient/1.0"
+    }
+  },
+  {
+    "description": "Hospital pharmacy prescription medicine purchase",
+    "expected_outcome": "APPROVE",
+    "payload": {
+      "event_id": "tx-sample-010",
+      "event_time": "2026-11-03T17:00:35Z",
+      "sequence_number": 10,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "account_id_hash": "acc_hash_cust_106",
+      "card_token": "tok_rupay_6070000000001234",
+      "amount_minor_units": 89000,
+      "currency": "INR",
+      "payment_method": "CARD",
+      "merchant_id": "merch_apollo_pharmacy_hyd",
+      "merchant_category_code": "5912",
+      "merchant_name": "Apollo Pharmacy Jubilee Hills",
+      "channel": "POS",
+      "ip_address": "183.82.100.4",
+      "device_id": "pos_terminal_apollo_02",
+      "user_agent": "AegisTerminal/2.1",
+      "custom_fields": {
+        "prescription_id": "rx_89021"
+      }
+    }
+  },
+  {
+    "description": "Zero PAN Violation Test: Raw 16-digit card number in merchant_name (Security rejection)",
+    "expected_outcome": "HTTP 400 Bad Request (urn:problem:pan-prohibited)",
+    "payload": {
+      "event_id": "tx-sample-011",
+      "event_time": "2026-11-03T17:00:40Z",
+      "sequence_number": 11,
+      "tenant_id": "00000000-0000-0000-0000-000000000001",
+      "card_token": "tok_visa_4242",
+      "amount_minor_units": 50000,
+      "currency": "INR",
+      "payment_method": "CARD",
+      "merchant_id": "merch_unsafe_store",
+      "merchant_name": "4111111111111111",
+      "channel": "POS"
+    }
+  }
+]
+

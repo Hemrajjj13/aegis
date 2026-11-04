@@ -1,5 +1,9 @@
 import java.util.concurrent.ConcurrentHashMap
 
+if (JavaVersion.current() != JavaVersion.VERSION_21) {
+    throw GradleException("Project Aegis requires JDK 21. Current JVM is ${JavaVersion.current()} (${System.getProperty("java.home")}).")
+}
+
 plugins {
     java
     id("org.springframework.boot") version "3.3.5" apply false
@@ -21,6 +25,9 @@ subprojects {
     apply(plugin = "java")
 
     java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
@@ -32,8 +39,15 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
-        jvmArgs("-XX:+EnableDynamicAgentLoading")
+        jvmArgs(
+            "-XX:+EnableDynamicAgentLoading",
+            "-Dorg.mockito.mock-maker-subclass=true"
+        )
+        systemProperty("org.mockito.mock-maker-subclass", "true")
         systemProperty("AEGIS_ALLOW_NO_DOCKER", System.getenv("AEGIS_ALLOW_NO_DOCKER") ?: System.getProperty("AEGIS_ALLOW_NO_DOCKER") ?: "")
+        systemProperty("AEGIS_PG_URL", System.getenv("AEGIS_PG_URL") ?: System.getProperty("AEGIS_PG_URL") ?: "jdbc:postgresql://127.0.0.1:5432/aegis")
+        systemProperty("AEGIS_PG_USER", System.getenv("AEGIS_PG_USER") ?: System.getProperty("AEGIS_PG_USER") ?: "aegis")
+        systemProperty("AEGIS_PG_PASSWORD", System.getenv("AEGIS_PG_PASSWORD") ?: System.getProperty("AEGIS_PG_PASSWORD") ?: "aegis")
         if (System.getenv("AEGIS_ALLOW_NO_DOCKER") != null) {
             environment("AEGIS_ALLOW_NO_DOCKER", System.getenv("AEGIS_ALLOW_NO_DOCKER")!!)
         }

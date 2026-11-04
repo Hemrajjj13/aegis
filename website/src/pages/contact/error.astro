@@ -1,0 +1,45 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { siteConfig } from '../../config/siteConfig';
+---
+<BaseLayout
+  title={`Submission Notice — ${siteConfig.productName}`}
+  description="There was an issue processing your contact inquiry."
+  canonicalPath="/contact/error"
+  noindex={true}
+>
+  <div class="py-20 px-4 max-w-xl mx-auto flex flex-col items-center text-center gap-6">
+    <div class="w-14 h-14 rounded-full bg-decline/10 border border-decline/20 flex items-center justify-center text-decline">
+      <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <h1 class="text-2xl font-bold tracking-tight text-text">
+        Inquiry Not Processed
+      </h1>
+      <p class="text-xs text-text-muted leading-relaxed">
+        We could not complete your submission. This typically occurs if required fields were missing, the message exceeded 2,000 characters, or the submission rate limit (5 inquiries per hour) was reached.
+      </p>
+    </div>
+
+    <div class="pt-4 flex gap-3">
+      <a
+        href="/contact"
+        class="py-2 px-4 rounded bg-accent-solid hover:bg-accent-hover text-white text-xs font-semibold shadow transition-colors"
+      >
+        Try Again
+      </a>
+      <a
+        href="/"
+        class="py-2 px-4 rounded bg-surface hover:bg-surface-raised border border-border text-text text-xs font-semibold transition-colors"
+      >
+        Return to Home
+      </a>
+    </div>
+  </div>
+</BaseLayout>
+

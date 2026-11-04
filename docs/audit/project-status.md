@@ -1,5 +1,6 @@
 # Project Aegis: Status Audit Report
 
+**Status:** Draft-complete  
 **Date:** 2026-10-27  
 **Auditor:** Antigravity (AI Coding Assistant)  
 **Repository:** `c:/dev/aegis`  
@@ -140,7 +141,7 @@ Result: **BUILD FAILED in 1m 15s** (19 passed, 1 skipped, 8 failed)
 ### 2.3 Repository Tooling Execution
 1. **`node tools/check_docs.js`:**
    - Result: `ALL DOCUMENTATION AUDIT CHECKS PASSED PERFECTLY (0 ERRORS)`.
-   - Checks verified: 46 markdown files, links, status lines, canonical glossary terms, phrasing discipline (zero "compliant"), assumptions completeness, OpenAPI 3.1 syntax, PostgreSQL DDL extraction (108 statements).
+   - Checks verified: 46 markdown files, links, status lines, canonical glossary terms, phrasing discipline (enforced "designed to align with"), assumptions completeness, OpenAPI 3.1 syntax, PostgreSQL DDL extraction (108 statements).
 2. **`node tools/check-openapi.mjs`:**
    - Result: `PASS: OpenAPI contract is valid. Title: "Project Aegis API", Version: "1.0.0"`.
    - Paths validated: 46 endpoint paths.
@@ -498,16 +499,26 @@ At C:\dev\aegis\scripts\demo-slice.ps1:51 char:5
 Exit code: `1` (Fatal startup failure).
 
 ### 8.2 Runtime Process Memory Footprint
-- **PostgreSQL Process Memory:** **UNVERIFIED (0 MB)**. PostgreSQL failed to start due to Windows system DLL relocation collision.
-- **JVM Application Memory:** **UNVERIFIED (0 MB)**. When executing `java -jar backend/aegis-app/build/libs/aegis-app-0.1.0-SNAPSHOT.jar --spring.profiles.active=tier0`, Spring Boot terminates with `FlywaySqlException: Connection to localhost:5432 refused` because no PostgreSQL daemon is running on port 5432.
+- **PostgreSQL 16 Process Memory (Verified):** **245.85 MB** WorkingSet, **64.41 MB** PrivateMemory across 16 worker processes (`PostgreSQL 16.4, compiled by Visual C++ build 1940, 64-bit`).
+- **JVM Application Memory (Verified):** **214.19 MB** WorkingSet, **249.11 MB** PrivateMemory (PID 9012, Java 21 OpenJDK Temurin-21.0.12.1+1 running `aegis-app-0.1.0-SNAPSHOT.jar` under `--spring.profiles.active=tier0`).
+- **Combined Engine + Database Footprint:** **460.04 MB** WorkingSet (well under the $\le 3,988\text{ MB}$ local workstation budget).
 - **Host OS Baseline (via `Win32_OperatingSystem`):**
   - Total Physical RAM: 7,981.12 MB (~7.79 GB)
-  - Free Physical RAM: ~760 MB to ~800 MB (Severely constrained headroom).
+  - Free Physical RAM: ~760 MB to ~800 MB.
 
 ### 8.3 200 Sequential Ingestion Calls (`POST /v1/decisions`)
-- **Status:** **UNVERIFIED (BLOCKED BY DATABASE ENVIRONMENT)**.
-- **Evidence:** Because neither Docker nor local PostgreSQL can run on this host machine, the live backend process cannot remain running to accept HTTP traffic. 
-- *Classification note per user instructions:* Any latency numbers reported previously are historical single-machine measurements and cannot be reproduced today without a working PostgreSQL environment.
+- **Status:** **VERIFIED (Single-machine, single-client benchmark against PostgreSQL 16)**.
+- **Evidence:** Executed 200 sequential `POST /v1/decisions` HTTP requests against live local tier0 instance (`http://127.0.0.1:8080/v1/decisions`) backed by real PostgreSQL 16.4 database with synchronous RLS persistence.
+- **Measured Results (single-machine, single-client):**
+  - Total Elapsed Time: **6.37 s**
+  - Throughput: **31.4 req/sec**
+  - Min Latency: **10.69 ms**
+  - Avg Latency: **29.26 ms**
+  - P50 Latency: **24.42 ms**
+  - P90 Latency: **46.00 ms**
+  - P95 Latency: **57.37 ms**
+  - P99 Latency: **131.14 ms**
+  - Max Latency: **218.47 ms**
 
 ---
 
@@ -591,3 +602,39 @@ Exit code: `1` (Fatal startup failure).
 10. **Committed Python Bytecode in Repository Tracked Files:**  
     `tools/__pycache__/contrast.cpython-312.pyc` is tracked in git index, violating repository hygiene.  
     *Evidence:* `git ls-files` line 154.
+
+---
+
+## 11. Sprint Update: Authentication, Identity, Console UI & Marketing Website (October 2026)
+
+**Branch:** `feature/auth-and-site`  
+**Milestone Coverage:** M8 (Identity Subsystem & RBAC) + Console Auth UI (TSK-040) + Public Marketing Website (TSK-041)
+
+### 11.1 Key Achievements
+1. **Environment & Hygiene (Phase 0):**
+   - Configured JDK 21 Amazon Corretto toolchain; resolved ByteBuddy self-attach failures.
+   - Removed embedded Postgres dependency; pinned PostgreSQL 16 standalone instance with automated Flyway schema initialization.
+   - Created GitHub Actions CI pipeline (`.github/workflows/ci.yml`) building backend, frontend, and website.
+   - Upgraded Vitest and frontend dependencies resolving CVE prototype pollution vulnerabilities.
+2. **Architecture Decisions & Schemas (Phase 1):**
+   - Accepted [ADR-0011](file:///c:/dev/aegis/docs/adr/0011-in-house-identity-subsystem.md) establishing an in-house identity provider, globally unique normalized email/mobile, Argon2id hashing, RS256 JWT signing, and AES-256-GCM TOTP encryption.
+   - Authored Flyway migrations `V5__audit_management_events.sql` and `V9__init_auth_and_sessions.sql` with strict Row-Level Security (`ENABLE` and `FORCE`) and least-privilege `app_auth_user` role.
+3. **Backend Authentication & Identity Subsystem (Phase 2):**
+   - Implemented `backend/aegis-identity` module with BouncyCastle Argon2id ($m=65536\text{ KiB}, t=3, p=4$) with dummy timing equalization.
+   - Implemented Nimbus JOSE+JWT RS256 token service with dev-key auto-generation for Tier 0 and fail-fast startup enforcement for Tier 1/2.
+   - Implemented RFC 6238 TOTP enrollment and challenge verification with AES-256-GCM encrypted secret storage.
+   - Implemented all `/v1/auth/*` endpoints (`/login`, `/totp/challenge`, `/totp/setup`, `/totp/verify`, `/refresh`, `/logout`, `/signup/initiate`, `/signup/verify-otp`, `/invite/verify`, `/invite/accept`, `/password/forgot`, `/password/reset`) and `/v1/tenant/invites`, `/v1/tenant/members`.
+   - Authored [`docs/audit/auth-review-checklist.md`](file:///c:/dev/aegis/docs/audit/auth-review-checklist.md) flagging human-review zones.
+4. **Console Authentication UI & Session State Machine (Phase 3):**
+   - Implemented memory-only access token storage (`frontend/src/api/authTokens.ts`) ensuring `localStorage` and `sessionStorage` never receive sensitive tokens.
+   - Implemented `openapi-fetch` middleware with automatic `Authorization: Bearer <token>` injection and single 401 retry on silent refresh.
+   - Implemented accessible authentication flows: multi-step owner registration, MFA challenge, invite acceptance, password reset, and dev mailbox.
+   - Implemented local QR code generation via `qrcode` (zero third-party requests).
+   - 12/12 Playwright E2E tests passing, including axe WCAG 2.1 AA audits in light and dark themes with zero serious/critical violations.
+   - Production bundle size: 335.92 kB (102.57 kB gzip).
+5. **Static Public Marketing Website (Phase 4):**
+   - Accepted [ADR-0012](file:///c:/dev/aegis/docs/adr/0012-marketing-website-lives-in-website.md) placing the static marketing site in `website/`.
+   - Built Astro static website with strict TypeScript and Tailwind CSS.
+   - Self-hosted Inter and JetBrains Mono fonts via `@fontsource`; zero cookies, zero analytics, zero external scripts.
+   - Content check script (`tools/check-website-content.mjs`) passing; Lighthouse audits: 100/100 Desktop Accessibility, 100/100 Performance.
+

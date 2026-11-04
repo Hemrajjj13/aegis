@@ -5,6 +5,8 @@ pgdata/
 tools/pgdata/
 **/pgdata/
 *.tmp
+.dev-keys/
+**/.dev-keys/
 
 # Frontend and Node dependencies & builds
 node_modules/
@@ -12,7 +14,20 @@ frontend/node_modules/
 frontend/dist/
 frontend/playwright-report/
 frontend/test-results/
+frontend/.vite/
 tools/extracted_schema.sql
+*.zip
+
+# Website (Astro marketing site)
+website/node_modules/
+website/dist/
+website/.astro/
+.astro/
+**/.astro/
+website/.screens/
+website/.lighthouse-reports/
+website/playwright-report/
+website/test-results/
 
 # Gradle and Java build outputs
 .gradle/
@@ -21,8 +36,21 @@ build/
 **/build/
 !backend/gradle/wrapper/gradle-wrapper.jar
 
+# Python
+__pycache__/
+*.pyc
+
 # IDE files
 .idea/
 *.iml
 .vscode/
 .DS_Store
+
+# Environment variables and secrets
+.env
+.env.*
+*.env
+*.env.local
+*.env.*.local
+!.env.example
+!*.env.example

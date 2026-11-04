@@ -1,0 +1,136 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../config/siteConfig';
+---
+<BaseLayout
+  title={`How Aegis Works — Architecture & Pipeline — ${siteConfig.productName}`}
+  description="Step-by-step transaction decision pipeline: ingest, Luhn PAN filtering, deduplication, velocity counters, CEL evaluation, atomic persistence, and SSE streaming."
+  canonicalPath="/how-it-works"
+>
+  <div class="py-12 md:py-16 px-4 max-w-5xl mx-auto flex flex-col gap-12">
+    <!-- Header -->
+    <div class="flex flex-col gap-3">
+      <span class="text-xs font-mono text-accent uppercase tracking-wider">Engine Architecture</span>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-text">
+        The eight-step transaction decision pipeline.
+      </h1>
+      <p class="text-xs md:text-sm text-text-muted max-w-2xl leading-relaxed">
+        From the moment a payment gateway initiates an authorization check to the emission of an SSE decision event, Aegis follows a deterministic, linear execution model.
+      </p>
+    </div>
+
+    <!-- Pipeline Visual SVG -->
+    <div class="p-6 rounded-lg border border-border bg-surface flex flex-col items-center">
+      <svg class="w-full max-w-3xl h-auto" viewBox="0 0 760 320" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Aegis eight-step transaction processing pipeline diagram">
+        <!-- Row 1: Steps 1 to 4 -->
+        <rect x="20" y="30" width="150" height="90" rx="6" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+        <text x="95" y="60" fill="#6366f1" font-size="11" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">STEP 1</text>
+        <text x="95" y="80" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">Event Ingest</text>
+        <text x="95" y="100" fill="#a1a1aa" font-size="9" font-family="JetBrains Mono, monospace" text-anchor="middle">POST /v1/decisions</text>
+
+        <path d="M170 75 H200" stroke="#6366f1" stroke-width="2"/>
+        <polygon points="200,75 194,71 194,79" fill="#6366f1"/>
+
+        <rect x="205" y="30" width="150" height="90" rx="6" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+        <text x="280" y="60" fill="#6366f1" font-size="11" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">STEP 2</text>
+        <text x="280" y="80" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">Luhn PAN Filter</text>
+        <text x="280" y="100" fill="#a1a1aa" font-size="9" font-family="JetBrains Mono, monospace" text-anchor="middle">Scans free-text fields</text>
+
+        <path d="M355 75 H385" stroke="#6366f1" stroke-width="2"/>
+        <polygon points="385,75 379,71 379,79" fill="#6366f1"/>
+
+        <rect x="390" y="30" width="150" height="90" rx="6" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+        <text x="465" y="60" fill="#6366f1" font-size="11" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">STEP 3</text>
+        <text x="465" y="80" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">Deduplication</text>
+        <text x="465" y="100" fill="#a1a1aa" font-size="9" font-family="JetBrains Mono, monospace" text-anchor="middle">Idempotent event_id</text>
+
+        <path d="M540 75 H570" stroke="#6366f1" stroke-width="2"/>
+        <polygon points="570,75 564,71 564,79" fill="#6366f1"/>
+
+        <rect x="575" y="30" width="165" height="90" rx="6" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+        <text x="657" y="60" fill="#6366f1" font-size="11" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">STEP 4</text>
+        <text x="657" y="80" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">Velocity Check</text>
+        <text x="657" y="100" fill="#a1a1aa" font-size="9" font-family="JetBrains Mono, monospace" text-anchor="middle">Sliding window Lua</text>
+
+        <!-- Turn connector -->
+        <path d="M657 120 V160 H657" stroke="#6366f1" stroke-width="2"/>
+        <path d="M657 160 H657 V200" stroke="#6366f1" stroke-width="2"/>
+        <polygon points="657,200 653,194 661,194" fill="#6366f1"/>
+
+        <!-- Row 2: Steps 5 to 8 (right to left) -->
+        <rect x="575" y="200" width="165" height="90" rx="6" fill="#18181b" stroke="#6366f1" stroke-width="1.5"/>
+        <text x="657" y="230" fill="#6366f1" font-size="11" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">STEP 5</text>
+        <text x="657" y="250" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">CEL Evaluation</text>
+        <text x="657" y="270" fill="#a1a1aa" font-size="9" font-family="JetBrains Mono, monospace" text-anchor="middle">Pure EventClock logic</text>
+
+        <path d="M575 245 H545" stroke="#6366f1" stroke-width="2"/>
+        <polygon points="545,245 551,241 551,249" fill="#6366f1"/>
+
+        <rect x="390" y="200" width="150" height="90" rx="6" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+        <text x="465" y="230" fill="#6366f1" font-size="11" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">STEP 6</text>
+        <text x="465" y="250" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">Atomic Persist</text>
+        <text x="465" y="270" fill="#a1a1aa" font-size="9" font-family="JetBrains Mono, monospace" text-anchor="middle">Postgres RLS write</text>
+
+        <path d="M390 245 H360" stroke="#6366f1" stroke-width="2"/>
+        <polygon points="360,245 366,241 366,249" fill="#6366f1"/>
+
+        <rect x="205" y="200" width="150" height="90" rx="6" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+        <text x="280" y="230" fill="#6366f1" font-size="11" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">STEP 7</text>
+        <text x="280" y="250" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">HTTP Response</text>
+        <text x="280" y="270" fill="#a1a1aa" font-size="9" font-family="JetBrains Mono, monospace" text-anchor="middle">APPROVE / DECLINE</text>
+
+        <path d="M205 245 H175" stroke="#6366f1" stroke-width="2"/>
+        <polygon points="175,245 181,241 181,249" fill="#6366f1"/>
+
+        <rect x="20" y="200" width="150" height="90" rx="6" fill="#18181b" stroke="#3f3f46" stroke-width="1.5"/>
+        <text x="95" y="230" fill="#6366f1" font-size="11" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">STEP 8</text>
+        <text x="95" y="250" fill="#f4f4f5" font-size="12" font-family="JetBrains Mono, monospace" text-anchor="middle" font-weight="600">SSE Feed</text>
+        <text x="95" y="270" fill="#a1a1aa" font-size="9" font-family="JetBrains Mono, monospace" text-anchor="middle">Console broadcast</text>
+      </svg>
+    </div>
+
+    <!-- Step by Step Narrative -->
+    <div class="space-y-6 text-xs text-text-muted leading-relaxed">
+      <div class="p-4 rounded border border-border bg-surface">
+        <h2 class="font-semibold text-text text-sm mb-1 font-mono">1. Event Ingest</h2>
+        <p>Your payment switch dispatches a JSON payment event to <code>POST /v1/decisions</code> with a unique <code>event_id</code>, authorization timestamp, and transaction parameters.</p>
+      </div>
+
+      <div class="p-4 rounded border border-border bg-surface">
+        <h2 class="font-semibold text-text text-sm mb-1 font-mono">2. Zero PAN Invariant &amp; Luhn Scanner</h2>
+        <p>Aegis enforces a strict Zero PAN invariant. All card identifiers must be network tokens (e.g. <code>tok_...</code>). The Luhn scanning filter inspects free-text fields (such as <code>merchant_name</code> and <code>custom_fields</code>) and immediately rejects requests with HTTP 400 if a raw card number is present.</p>
+      </div>
+
+      <div class="p-4 rounded border border-border bg-surface">
+        <h2 class="font-semibold text-text text-sm mb-1 font-mono">3. Deduplication &amp; Idempotency</h2>
+        <p>The engine checks the database for existing decisions sharing the same <code>event_id</code> and tenant scope. If found, Aegis returns the cached decision response immediately without re-executing rules or re-incrementing velocity counters.</p>
+      </div>
+
+      <div class="p-4 rounded border border-border bg-surface">
+        <h2 class="font-semibold text-text text-sm mb-1 font-mono">4. Velocity Counter Updates</h2>
+        <p>Atomic Redis Lua scripts record the event in sliding-window sorted sets. Scores are recorded as epoch timestamps. Windows are evaluated for account, card token, IP address, and device ID.</p>
+      </div>
+
+      <div class="p-4 rounded border border-border bg-surface">
+        <h2 class="font-semibold text-text text-sm mb-1 font-mono">5. Deterministic CEL Evaluation</h2>
+        <p>The ruleset executes against the event and velocity context. Because <code>EventClock</code> is injected directly from the event payload, time-of-day and window evaluations produce identical results regardless of wall-clock jitter.</p>
+      </div>
+
+      <div class="p-4 rounded border border-border bg-surface">
+        <h2 class="font-semibold text-text text-sm mb-1 font-mono">6. Atomic Decision Persistence</h2>
+        <p>The evaluation outcome, score, triggered rules, and payload SHA-256 hash are committed into PostgreSQL under the tenant's Row-Level Security context.</p>
+      </div>
+
+      <div class="p-4 rounded border border-border bg-surface">
+        <h2 class="font-semibold text-text text-sm mb-1 font-mono">7. HTTP Decision Response</h2>
+        <p>The client receives an HTTP 200 payload containing the final outcome (<code>APPROVE</code>, <code>DECLINE</code>, <code>REVIEW</code>), composite score, rules fired, and evaluation latency in milliseconds.</p>
+      </div>
+
+      <div class="p-4 rounded border border-border bg-surface">
+        <h2 class="font-semibold text-text text-sm mb-1 font-mono">8. Real-Time Telemetry Broadcast</h2>
+        <p>If the event was not a duplicate replay, the decision is published to active Server-Sent Events subscribers on <code>GET /v1/events/stream</code> for immediate display on the operator console.</p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+

@@ -1,15 +1,21 @@
 spring:
   application:
     name: aegis-decision-engine
+  config:
+    import:
+      - "optional:file:.env[.properties]"
+      - "optional:file:../.env[.properties]"
+      - "optional:file:backend/.env[.properties]"
   profiles:
-    active: tier0
+    active: ${SPRING_PROFILES_ACTIVE:tier0}
   datasource:
-    url: jdbc:postgresql://localhost:5432/aegis
-    username: aegis
-    password: aegis
+    url: ${AEGIS_PG_URL:jdbc:postgresql://127.0.0.1:5432/aegis}
+    username: ${AEGIS_PG_USER:aegis}
+    password: ${AEGIS_PG_PASSWORD:aegis}
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
+    out-of-order: true
     locations: classpath:db/migration
 
 server:
